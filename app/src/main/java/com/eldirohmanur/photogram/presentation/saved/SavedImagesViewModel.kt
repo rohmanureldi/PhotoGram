@@ -28,7 +28,7 @@ class SavedImagesViewModel @Inject constructor(
         loadSavedArtworks()
     }
 
-    fun loadSavedArtworks() {
+    private fun loadSavedArtworks() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
 

@@ -4,5 +4,5 @@ import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
 
 data class SavedScreenState(
     val savedArtworks: List<ArtworkUiModel> = emptyList(),
-    val isLoading: Boolean = false
+    val isLoading: Boolean = true
 )
