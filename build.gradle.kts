@@ -7,3 +7,9 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.sonar) apply false
 }
+
+buildscript {
+    dependencies {
+        classpath("org.bouncycastle:bcutil-jdk18on:1.79")
+    }
+}
