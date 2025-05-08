@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.compose) apply false
-    id("com.google.dagger.hilt.android") version "2.51" apply false
-    id("com.google.devtools.ksp") version "2.0.0-1.0.23" apply false
+    alias(libs.plugins.hilt) apply false
+    alias(libs.plugins.ksp) apply false
+    alias(libs.plugins.sonar) apply false
 }
