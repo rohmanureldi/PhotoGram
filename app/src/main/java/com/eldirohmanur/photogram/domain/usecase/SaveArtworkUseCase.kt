@@ -4,7 +4,7 @@ import com.eldirohmanur.photogram.domain.model.ArtworkDetailDomain
 import com.eldirohmanur.photogram.domain.model.ArtworkDomain
 import com.eldirohmanur.photogram.domain.repo.SavedArtworkRepo
 import com.eldirohmanur.photogram.domain.toArtworkDomain
-import com.eldirohmanur.photogram.presentation.ArtworkUiModel
+import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject

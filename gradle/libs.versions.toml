@@ -1,6 +1,7 @@
 [versions]
 activityCompose = "1.10.1"
 agp = "8.7.3"
+bcutilJdk18on = "1.79"
 coilCompose = "2.7.0"
 composeBom = "2025.04.01"
 converterGson = "2.11.0"
@@ -42,6 +43,7 @@ androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 
 # --- Google / Dagger ---
+bcutil-jdk18on = { module = "org.bouncycastle:bcutil-jdk18on", version.ref = "bcutilJdk18on" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltAndroid" }
 

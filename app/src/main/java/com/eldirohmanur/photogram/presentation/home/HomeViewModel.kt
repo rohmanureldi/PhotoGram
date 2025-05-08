@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eldirohmanur.photogram.domain.usecase.FetchArtworksUseCase
 import com.eldirohmanur.photogram.domain.usecase.SearchArtworksUseCase
-import com.eldirohmanur.photogram.presentation.ArtworkUiModel
+import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
 import com.eldirohmanur.photogram.presentation.mapper.toArtworkUI
 import com.eldirohmanur.photogram.utils.ArtworkConst
 import dagger.hilt.android.lifecycle.HiltViewModel

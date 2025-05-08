@@ -1,4 +1,4 @@
-package com.eldirohmanur.photogram.presentation
+package com.eldirohmanur.photogram.presentation.model
 
 data class ArtworkUiModel(
     val id: Int,

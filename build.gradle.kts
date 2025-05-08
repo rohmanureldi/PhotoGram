@@ -10,6 +10,6 @@ plugins {
 
 buildscript {
     dependencies {
-        classpath("org.bouncycastle:bcutil-jdk18on:1.79")
+        classpath(libs.bcutil.jdk18on)
     }
 }

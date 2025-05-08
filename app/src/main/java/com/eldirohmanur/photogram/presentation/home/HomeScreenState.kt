@@ -1,6 +1,6 @@
 package com.eldirohmanur.photogram.presentation.home
 
-import com.eldirohmanur.photogram.presentation.ArtworkUiModel
+import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
 
 data class HomeScreenState(
     val artworks: List<ArtworkUiModel> = emptyList(),

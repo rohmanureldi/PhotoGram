@@ -1,7 +1,7 @@
 package com.eldirohmanur.photogram.presentation.mapper
 
 import com.eldirohmanur.photogram.domain.model.ArtworkDomain
-import com.eldirohmanur.photogram.presentation.ArtworkUiModel
+import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
 
 fun ArtworkDomain.toArtworkUI(): ArtworkUiModel {
     return ArtworkUiModel(

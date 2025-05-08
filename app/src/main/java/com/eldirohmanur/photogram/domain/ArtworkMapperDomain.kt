@@ -5,7 +5,7 @@ import com.eldirohmanur.photogram.data.source.remote.model.ArtworkDataResponse
 import com.eldirohmanur.photogram.data.source.remote.model.ArtworkDetailDataResponse
 import com.eldirohmanur.photogram.domain.model.ArtworkDetailDomain
 import com.eldirohmanur.photogram.domain.model.ArtworkDomain
-import com.eldirohmanur.photogram.presentation.ArtworkUiModel
+import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
 
 fun SavedArtworkEntity.toArtwork(): ArtworkDomain {
     return ArtworkDomain(
