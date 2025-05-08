@@ -47,20 +47,13 @@ fun ArtworkDetailScreen(
 
     Scaffold(
         floatingActionButton = {
-            if (artwork != null) {
-                FloatingActionButton(
-                    onClick = {
-                        if (artwork.isSaved) {
-                            viewModel.removeFromSaved(artwork.id)
-                        } else {
-                            viewModel.saveArtwork()
-                        }
+            artwork?.let {
+                SaveArtworkButton(it.isSaved) {
+                    if (it.isSaved) {
+                        viewModel.removeFromSaved(artwork.id)
+                    } else {
+                        viewModel.saveArtwork()
                     }
-                ) {
-                    Icon(
-                        imageVector = if (artwork.isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = if (artwork.isSaved) "Remove from saved" else "Save artwork"
-                    )
                 }
             }
         }
@@ -90,6 +83,21 @@ fun ArtworkDetailScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SaveArtworkButton(
+    isSaved: Boolean,
+    onToggleSave: () -> Unit
+) {
+    FloatingActionButton(
+        onClick = onToggleSave
+    ) {
+        Icon(
+            imageVector = if (isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+            contentDescription = if (isSaved) "Remove from saved" else "Save artwork"
+        )
     }
 }
 
