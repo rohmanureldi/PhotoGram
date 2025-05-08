@@ -7,18 +7,21 @@ import com.eldirohmanur.photogram.domain.repo.ArtworkRepo
 import com.eldirohmanur.photogram.domain.repo.SavedArtworkRepo
 import com.eldirohmanur.photogram.domain.toArtwork
 import com.eldirohmanur.photogram.domain.toArtworkDetail
+import com.eldirohmanur.photogram.utils.Dispatch
+import com.eldirohmanur.photogram.utils.mapAsync
 import javax.inject.Inject
 
 
 class ArtworkRepoImpl @Inject constructor(
     private val api: ArtInstituteApi,
-    private val savedArtworkRepository: SavedArtworkRepo
+    private val savedArtworkRepository: SavedArtworkRepo,
+    private val dispatcher: Dispatch
 ) : ArtworkRepo {
 
     override suspend fun getArtworks(page: Int, limit: Int): Result<List<ArtworkDomain>> {
         return try {
             val response = api.getArtworks(page, limit)
-            val artworks = response.data.map { it.toArtwork() }
+            val artworks = response.data.mapAsync(dispatcher) { it.toArtwork() }
 
             // Check if each artwork is saved
             val artworksWithSavedStatus = artworks.map { artwork ->
@@ -35,7 +38,8 @@ class ArtworkRepoImpl @Inject constructor(
         return try {
             val response = api.getArtworkDetail(id)
             val isSaved = savedArtworkRepository.isArtworkSaved(id)
-            Result.success(response.data.toArtworkDetail().copy(isSaved = isSaved))
+            val mResponse = response.data.toArtworkDetail().copy(isSaved = isSaved)
+            Result.success(mResponse)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -52,10 +56,13 @@ class ArtworkRepoImpl @Inject constructor(
                 page = page,
                 limit = limit
             )
-            val artworks = response.data.map { it.toArtwork() }
+
+            val artworks = response.data.mapAsync(dispatcher) {
+                it.toArtwork()
+            }
 
             // Check if each artwork is saved
-            val artworksWithSavedStatus = artworks.map { artwork ->
+            val artworksWithSavedStatus = artworks.mapAsync(dispatcher) { artwork ->
                 artwork.copy(isSaved = savedArtworkRepository.isArtworkSaved(artwork.id))
             }
 

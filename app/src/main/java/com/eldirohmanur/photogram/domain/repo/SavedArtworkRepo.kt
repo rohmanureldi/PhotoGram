@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 
 interface SavedArtworkRepo {
-    fun getSavedArtworks(): Flow<List<ArtworkDomain>>
+    suspend fun getSavedArtworks(): Flow<List<ArtworkDomain>>
     suspend fun getSavedArtworkById(id: Int): ArtworkDomain?
     suspend fun saveArtwork(artwork: ArtworkDomain)
     suspend fun deleteArtwork(artworkId: Int)

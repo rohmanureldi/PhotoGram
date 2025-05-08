@@ -5,18 +5,23 @@ import com.eldirohmanur.photogram.data.source.local.entity.SavedArtworkEntity
 import com.eldirohmanur.photogram.domain.model.ArtworkDomain
 import com.eldirohmanur.photogram.domain.repo.SavedArtworkRepo
 import com.eldirohmanur.photogram.domain.toArtwork
+import com.eldirohmanur.photogram.utils.Dispatch
+import com.eldirohmanur.photogram.utils.mapAsync
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 
 class SavedArtworkRepoImpl @Inject constructor(
-    private val savedArtworkDao: SavedArtworkDao
+    private val savedArtworkDao: SavedArtworkDao,
+    private val dispatcher: Dispatch,
 ) : SavedArtworkRepo {
 
-    override fun getSavedArtworks(): Flow<List<ArtworkDomain>> {
+    override suspend fun getSavedArtworks(): Flow<List<ArtworkDomain>> {
         return savedArtworkDao.getAllSavedArtworks().map { entities ->
-            entities.map { it.toArtwork() }
+            entities.mapAsync(dispatcher) {
+                it.toArtwork()
+            }
         }
     }
 
