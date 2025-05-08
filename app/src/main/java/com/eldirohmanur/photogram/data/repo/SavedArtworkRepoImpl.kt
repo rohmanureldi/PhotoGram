@@ -17,7 +17,7 @@ class SavedArtworkRepoImpl @Inject constructor(
     private val dispatcher: Dispatch,
 ) : SavedArtworkRepo {
 
-    override suspend fun getSavedArtworks(): Flow<List<ArtworkDomain>> {
+    override fun getSavedArtworks(): Flow<List<ArtworkDomain>> {
         return savedArtworkDao.getAllSavedArtworks().map { entities ->
             entities.mapAsync(dispatcher) {
                 it.toArtwork()

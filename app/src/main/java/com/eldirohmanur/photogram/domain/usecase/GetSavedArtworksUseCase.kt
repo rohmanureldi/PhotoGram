@@ -8,7 +8,7 @@ import javax.inject.Inject
 class GetSavedArtworksUseCase @Inject constructor(
     private val repository: SavedArtworkRepo
 ) {
-    suspend operator fun invoke(): Flow<List<ArtworkDomain>> {
+    operator fun invoke(): Flow<List<ArtworkDomain>> {
         return repository.getSavedArtworks()
     }
 
