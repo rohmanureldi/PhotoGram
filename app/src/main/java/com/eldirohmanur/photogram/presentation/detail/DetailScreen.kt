@@ -25,13 +25,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.SubcomposeAsyncImage
-import coil.request.ImageRequest
 import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
+import com.eldirohmanur.photogram.utils.landscapist.CustomFailedPlugin
+import com.eldirohmanur.photogram.utils.landscapist.CustomThumbnailPlugin
+import com.skydoves.landscapist.ImageOptions
+import com.skydoves.landscapist.components.rememberImageComponent
+import com.skydoves.landscapist.glide.GlideImage
 
 @Composable
 fun ArtworkDetailScreen(
@@ -111,17 +113,16 @@ fun ArtworkDetailContent(artwork: ArtworkUiModel) {
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        SubcomposeAsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(artwork.imageUrl)
-                .crossfade(true)
-                .build(),
-            contentDescription = artwork.title,
-            contentScale = ContentScale.FillWidth,
-            loading = {
-                Box(modifier = Modifier.height(300.dp)) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
+        GlideImage(
+            imageModel = { artwork.imageUrl }, // loading a network image using an URL.
+            imageOptions = ImageOptions(
+                contentScale = ContentScale.FillWidth,
+                alignment = Alignment.Center,
+                contentDescription = artwork.title
+            ),
+            component = rememberImageComponent {
+                +CustomThumbnailPlugin(artwork.thumbnailUrl)
+                +CustomFailedPlugin
             },
             modifier = Modifier
                 .fillMaxWidth()

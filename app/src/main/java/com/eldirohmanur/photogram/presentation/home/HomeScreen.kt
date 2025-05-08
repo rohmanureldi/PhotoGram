@@ -36,14 +36,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
+import com.eldirohmanur.photogram.utils.landscapist.CustomFailedPlugin
+import com.eldirohmanur.photogram.utils.landscapist.CustomThumbnailPlugin
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.components.rememberImageComponent
 import com.skydoves.landscapist.glide.GlideImage
-import com.skydoves.landscapist.plugins.ImagePlugin
 
 @Composable
 fun HomeScreen(
@@ -126,11 +126,10 @@ fun SearchBarComponent(
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         shape = SearchBarDefaults.inputFieldShape,
-//        colors = SearchBarDefaults.sea(),
         tonalElevation = SearchBarDefaults.TonalElevation,
         shadowElevation = SearchBarDefaults.ShadowElevation,
         windowInsets = SearchBarDefaults.windowInsets,
-        content =  {
+        content = {
 
         },
     )
@@ -207,7 +206,8 @@ fun ArtworkItem(
                     contentDescription = artwork.title
                 ),
                 component = rememberImageComponent {
-                    +CustomLoadingPlugin(artwork.thumbnailUrl)
+                    +CustomThumbnailPlugin(artwork.thumbnailUrl)
+                    +CustomFailedPlugin
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -239,27 +239,6 @@ fun ArtworkItem(
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-        }
-    }
-}
-
-data class CustomLoadingPlugin(val model: Any) : ImagePlugin.LoadingStatePlugin {
-
-    @Composable
-    override fun compose(
-        modifier: Modifier,
-        imageOptions: ImageOptions,
-        executor: @Composable (IntSize) -> Unit
-    ): ImagePlugin = apply {
-        Box(modifier = Modifier.fillMaxSize()) {
-            GlideImage(
-                modifier = Modifier.fillMaxSize(),
-                imageModel = { model },
-                imageOptions = ImageOptions(
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center
-                )
-            )
         }
     }
 }

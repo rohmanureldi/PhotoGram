@@ -32,10 +32,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
+import com.eldirohmanur.photogram.utils.landscapist.CustomFailedPlugin
+import com.eldirohmanur.photogram.utils.landscapist.CustomThumbnailPlugin
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.components.rememberImageComponent
 import com.skydoves.landscapist.glide.GlideImage
-import com.skydoves.landscapist.placeholder.thumbnail.ThumbnailPlugin
 
 @Composable
 fun SavedImagesScreen(
@@ -111,7 +112,8 @@ fun SavedArtworkItem(
                         contentDescription = artwork.title
                     ),
                     component = rememberImageComponent {
-                        +ThumbnailPlugin()
+                        +CustomThumbnailPlugin(artwork.thumbnailUrl)
+                        +CustomFailedPlugin
                     },
                     modifier = Modifier
                         .fillMaxWidth()
