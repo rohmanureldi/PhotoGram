@@ -40,7 +40,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Run tests and generate coverage report
-        run: ./gradlew testDebugUnitTest jacocoTestReport --info
+        run: ./gradlew testDebugUnitTest -x lint -x lintVitalRelease jacocoTestReport --info
 
       - name: Build and analyze with SonarQube
         env:
