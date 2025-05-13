@@ -23,7 +23,9 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         "**/*_MembersInjector.*", // Dagger generated code
         "**/*_*Factory.*", // Dagger generated code
         "**/generated/**",
-        "**/*_Provide*Factory*.*"
+        "**/*_Provide*Factory*.*",
+        "**/theme/**",
+        "**/utils/**"
     )
 
     val mainSrc = "${project.projectDir}/src/main/java"
