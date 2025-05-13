@@ -42,15 +42,6 @@ jobs:
       - name: Run tests and generate coverage report
         run: ./gradlew testDebugUnitTest jacocoTestReport --info
 
-      - name: Upload test reports (for debugging)
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-reports
-          path: |
-            **/build/reports/tests/
-            **/build/reports/jacoco/
-
       - name: Build and analyze with SonarQube
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information
