@@ -96,7 +96,6 @@ class SavedImagesViewModelTest {
         // Given
         val artworkId = 1
         whenever(getSavedArtworksUseCase()).thenReturn(flowOf(emptyList()))
-        whenever(removeSavedArtworkUseCase(artworkId)).thenReturn(Unit)
 
         viewModel = SavedImagesViewModel(getSavedArtworksUseCase, removeSavedArtworkUseCase)
 
@@ -105,7 +104,7 @@ class SavedImagesViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle() // Process all pending coroutines
 
         // Then
-        verify(removeSavedArtworkUseCase(artworkId))
+        verify(removeSavedArtworkUseCase).invoke(artworkId)
     }
 
     @Test
