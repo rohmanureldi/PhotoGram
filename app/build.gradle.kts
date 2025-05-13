@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
     alias(libs.plugins.sonar)
+    id("jacoco")
 }
 
 android {
@@ -36,6 +37,20 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+            all {
+                it.extensions.configure(JacocoTaskExtension::class.java) {
+                    isIncludeNoLocationClasses = true
+                    excludes = listOf("jdk.internal.*")
+                }
+            }
+        }
+    }
+
     kotlinOptions {
         jvmTarget = "11"
     }
@@ -47,8 +62,56 @@ android {
             property("sonar.projectKey", "rohmanureldi_PhotoGram")
             property("sonar.organization", "rohmanureldi")
             property("sonar.host.url", "https://sonarcloud.io")
+            property("sonar.coverage.jacoco.xmlReportPaths", "${project.layout.buildDirectory.get()}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
         }
     }
+}
+
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+
+    val fileFilter = listOf(
+        "**/R.class",
+        "**/R$*.class",
+        "**/BuildConfig.*",
+        "**/Manifest*.*",
+        "**/*Test*.*",
+        "android/**/*.*",
+        "**/di/**", // Typically exclude DI modules
+        "**/*_Factory.*", // Dagger generated code
+        "**/*_MembersInjector.*", // Dagger generated code
+        "**/*_*Factory.*", // Dagger generated code
+        "**/generated/**",
+        "**/*_Provide*Factory*.*"
+    )
+
+    val mainSrc = "${project.projectDir}/src/main/java"
+
+    sourceDirectories.setFrom(files(arrayOf(mainSrc)))
+    classDirectories.setFrom(
+        files(
+            arrayOf(
+                fileTree("${project.layout.buildDirectory.get()}/tmp/kotlin-classes/debug") {
+                    exclude(fileFilter)
+                }
+            )
+        )
+    )
+
+    executionData.setFrom(files(arrayOf("${project.layout.buildDirectory.get()}/jacoco/testDebugUnitTest.exec")))
+}
+
+tasks.named("check") {
+    finalizedBy("jacocoTestReport")
+}
+
+jacoco {
+    toolVersion = "0.8.10" // Use the latest stable version
 }
 
 dependencies {

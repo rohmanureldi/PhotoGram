@@ -32,6 +32,16 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
       - name: Grant execute permission to Gradle wrapper
         run: chmod +x ./gradlew
+      - name: Run tests and generate coverage report
+        run: ./gradlew testDebugUnitTest jacocoTestReport --info
+      - name: Upload test reports (for debugging)
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+         name: test-reports
+         path: |
+           **/build/reports/tests/
+           **/build/reports/jacoco/
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
