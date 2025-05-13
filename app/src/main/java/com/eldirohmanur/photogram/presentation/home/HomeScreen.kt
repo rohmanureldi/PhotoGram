@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
+import com.eldirohmanur.photogram.utils.OnBottomReached
 import com.eldirohmanur.photogram.utils.landscapist.CustomFailedPlugin
 import com.eldirohmanur.photogram.utils.landscapist.CustomThumbnailPlugin
 import com.skydoves.landscapist.ImageOptions
@@ -144,18 +145,7 @@ fun ArtworkGrid(
 ) {
     val gridState = rememberLazyGridState()
 
-    LaunchedEffect(gridState) {
-        snapshotFlow { gridState.layoutInfo }
-            .collect { layoutInfo ->
-                val totalItems = layoutInfo.totalItemsCount
-                val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-
-                // Trigger load when near the end (e.g., last 3 items)
-                if (lastVisibleItemIndex >= totalItems - 4 && !isLoadMore) {
-                    onLoadMore()
-                }
-            }
-    }
+    gridState.OnBottomReached(onLoadMore)
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
