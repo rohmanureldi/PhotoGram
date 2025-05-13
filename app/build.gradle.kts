@@ -8,6 +8,8 @@ plugins {
     id("jacoco")
 }
 
+apply(from = "../jacoco.gradle.kts")
+
 android {
     namespace = "com.eldirohmanur.photogram"
     compileSdk = 35
@@ -76,49 +78,6 @@ android {
             freeCompilerArgs.add("-Xuse-k2=false")
         }
     }
-}
-
-tasks.register<JacocoReport>("jacocoTestReport") {
-    dependsOn("testDebugUnitTest")
-
-    reports {
-        xml.required.set(true)
-        html.required.set(true)
-    }
-
-    val fileFilter = listOf(
-        "**/R.class",
-        "**/R$*.class",
-        "**/BuildConfig.*",
-        "**/Manifest*.*",
-        "**/*Test*.*",
-        "android/**/*.*",
-        "**/di/**", // Typically exclude DI modules
-        "**/*_Factory.*", // Dagger generated code
-        "**/*_MembersInjector.*", // Dagger generated code
-        "**/*_*Factory.*", // Dagger generated code
-        "**/generated/**",
-        "**/*_Provide*Factory*.*"
-    )
-
-    val mainSrc = "${project.projectDir}/src/main/java"
-
-    sourceDirectories.setFrom(files(arrayOf(mainSrc)))
-    classDirectories.setFrom(
-        files(
-            arrayOf(
-                fileTree("${project.layout.buildDirectory.get()}/tmp/kotlin-classes/debug") {
-                    exclude(fileFilter)
-                }
-            )
-        )
-    )
-
-    executionData.setFrom(files(arrayOf("${project.layout.buildDirectory.get()}/jacoco/testDebugUnitTest.exec")))
-}
-
-tasks.named("check") {
-    finalizedBy("jacocoTestReport")
 }
 
 jacoco {
