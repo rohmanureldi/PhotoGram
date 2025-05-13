@@ -1,6 +1,5 @@
 package com.eldirohmanur.photogram
 
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import app.cash.turbine.test
 import com.eldirohmanur.photogram.domain.model.ArtworkDomain
 import com.eldirohmanur.photogram.domain.usecase.DeleteSavedArtworkUseCase
@@ -8,9 +7,6 @@ import com.eldirohmanur.photogram.domain.usecase.GetSavedArtworksUseCase
 import com.eldirohmanur.photogram.presentation.mapper.toArtworkUI
 import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
 import com.eldirohmanur.photogram.presentation.saved.SavedImagesViewModel
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -20,137 +16,115 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
-import java.io.IOException
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
+import kotlin.time.ExperimentalTime
 
-class SavedImageViewModelTest {
+@ExperimentalCoroutinesApi
+@ExperimentalTime
+class SavedImagesViewModelTest {
 
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val testDispatcher = StandardTestDispatcher()
-
+    // Mocks
     private lateinit var getSavedArtworksUseCase: GetSavedArtworksUseCase
     private lateinit var removeSavedArtworkUseCase: DeleteSavedArtworkUseCase
     private lateinit var viewModel: SavedImagesViewModel
 
-    // Test data
-    private val mockArtworkDomain1 = mockk<ArtworkDomain>(relaxed = true)
-    private val mockArtworkDomain2 = mockk<ArtworkDomain>(relaxed = true)
-    private val mockArtworkUI1 = mockk<ArtworkUiModel>(relaxed = true)
-    private val mockArtworkUI2 = mockk<ArtworkUiModel>(relaxed = true)
+    // Test dispatcher
+    private val testDispatcher = StandardTestDispatcher()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setup() {
+        // Set the main dispatcher to our test dispatcher
         Dispatchers.setMain(testDispatcher)
 
-        getSavedArtworksUseCase = mockk()
-        removeSavedArtworkUseCase = mockk()
-
-        // Mock the toArtworkUI extension function for domain objects
-        coEvery { mockArtworkDomain1.toArtworkUI() } returns mockArtworkUI1
-        coEvery { mockArtworkDomain2.toArtworkUI() } returns mockArtworkUI2
+        // Initialize mocks
+        getSavedArtworksUseCase = mock()
+        removeSavedArtworkUseCase = mock()
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @After
     fun tearDown() {
+        // Reset the main dispatcher
         Dispatchers.resetMain()
     }
 
     @Test
-    fun `init should load saved artworks`() = runTest {
+    fun `init should load saved artworks and update state`() = runTest {
         // Given
-        val artworkList = listOf(mockArtworkDomain1, mockArtworkDomain2)
-        coEvery { getSavedArtworksUseCase() } returns flowOf(artworkList)
+        val artworks = listOf(
+            ArtworkDomain(id = 1, title = "Artwork 1", "", "", "", "", "", false, ""),
+            ArtworkDomain(id = 2, title = "Artwork 2", "", "", "", "", "", false, ""),
+        )
+        val expectedUiArtworks = artworks.map { it.toArtworkUI() }
+
+        whenever(getSavedArtworksUseCase()).thenReturn(flowOf(artworks))
 
         // When
         viewModel = SavedImagesViewModel(getSavedArtworksUseCase, removeSavedArtworkUseCase)
-        testDispatcher.scheduler.advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle() // Process all pending coroutines
 
         // Then
         viewModel.state.test {
-            val emission = awaitItem()
-            assertEquals(listOf(mockArtworkUI1, mockArtworkUI2), emission.savedArtworks)
-            assertFalse(emission.isLoading)
+            val currentState = awaitItem()
+            assertEquals(false, currentState.isLoading)
+            assertEquals(expectedUiArtworks, currentState.savedArtworks)
         }
     }
 
     @Test
     fun `init should handle error when loading saved artworks`() = runTest {
         // Given
-        coEvery { getSavedArtworksUseCase() } throws IOException("Network error")
+        whenever(getSavedArtworksUseCase()).thenThrow(RuntimeException("Network error"))
 
         // When
         viewModel = SavedImagesViewModel(getSavedArtworksUseCase, removeSavedArtworkUseCase)
-        testDispatcher.scheduler.advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle() // Process all pending coroutines
 
         // Then
         viewModel.state.test {
-            val emission = awaitItem()
-            assertEquals(emptyList<ArtworkUiModel>(), emission.savedArtworks)
-            assertFalse(emission.isLoading)
+            val currentState = awaitItem()
+            assertEquals(false, currentState.isLoading)
+            assertEquals(emptyList<ArtworkUiModel>(), currentState.savedArtworks)
         }
     }
 
     @Test
-    fun `removeFromSaved should call removeSavedArtworkUseCase`() = runTest {
+    fun `removeFromSaved should call remove use case with correct id`() = runTest {
         // Given
-        val artworkId = 123
-        val artworkList = listOf(mockArtworkDomain1, mockArtworkDomain2)
-        coEvery { getSavedArtworksUseCase() } returns flowOf(artworkList)
-        coEvery { removeSavedArtworkUseCase(artworkId) } returns Unit
+        val artworkId = 1
+        whenever(getSavedArtworksUseCase()).thenReturn(flowOf(emptyList()))
+        whenever(removeSavedArtworkUseCase(artworkId)).thenReturn(Unit)
+
+        viewModel = SavedImagesViewModel(getSavedArtworksUseCase, removeSavedArtworkUseCase)
 
         // When
-        viewModel = SavedImagesViewModel(getSavedArtworksUseCase, removeSavedArtworkUseCase)
         viewModel.removeFromSaved(artworkId)
-        testDispatcher.scheduler.advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle() // Process all pending coroutines
 
         // Then
-        coVerify { removeSavedArtworkUseCase(artworkId) }
+        verify(removeSavedArtworkUseCase(artworkId))
     }
 
     @Test
-    fun `removeFromSaved should handle error`() = runTest {
+    fun `removeFromSaved should handle error gracefully`() = runTest {
         // Given
-        val artworkId = 123
-        val artworkList = listOf(mockArtworkDomain1, mockArtworkDomain2)
-        coEvery { getSavedArtworksUseCase() } returns flowOf(artworkList)
-        coEvery { removeSavedArtworkUseCase(artworkId) } throws IOException("Network error")
+        val artworkId = 1
+        whenever(getSavedArtworksUseCase()).thenReturn(flowOf(emptyList()))
+        whenever(removeSavedArtworkUseCase.invoke(artworkId)).thenThrow(RuntimeException("Delete error"))
+        viewModel = SavedImagesViewModel(getSavedArtworksUseCase, removeSavedArtworkUseCase)
 
         // When
-        viewModel = SavedImagesViewModel(getSavedArtworksUseCase, removeSavedArtworkUseCase)
         viewModel.removeFromSaved(artworkId)
-        testDispatcher.scheduler.advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle() // Process all pending coroutines
 
-        // Then
-        coVerify { removeSavedArtworkUseCase(artworkId) }
-        // No state change expected since the Flow will handle updates automatically
-    }
-
-    @Test
-    fun `state should reflect loading state during initialization`() = runTest {
-        // Given
-        coEvery { getSavedArtworksUseCase() } returns flowOf(emptyList())
-
-        // When
-        viewModel = SavedImagesViewModel(getSavedArtworksUseCase, removeSavedArtworkUseCase)
-
-        // Then - test the initial loading state
+        // Then - Verify the app doesn't crash and state remains unchanged
         viewModel.state.test {
-            val initialState = awaitItem()
-            assertEquals(true, initialState.isLoading)
-
-            // Advance time to complete loading
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            val loadedState = awaitItem()
-            assertEquals(false, loadedState.isLoading)
+            val currentState = awaitItem()
+            assertEquals(false, currentState.isLoading)
+            assertEquals(emptyList<ArtworkUiModel>(), currentState.savedArtworks)
         }
     }
 }

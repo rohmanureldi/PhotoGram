@@ -6,6 +6,7 @@ coilCompose = "2.7.0"
 composeBom = "2025.04.01"
 converterGson = "2.11.0"
 coreKtx = "1.16.0"
+coreTesting = "2.2.0"
 espressoCore = "3.6.1"
 hiltAndroid = "2.51"
 hiltNavigationCompose = "1.2.0"
@@ -13,15 +14,19 @@ junit = "4.13.2"
 junitVersion = "1.2.1"
 kotlin = "2.0.0"
 kotlinxCoroutinesAndroid = "1.9.0"
+kotlinxCoroutinesTest = "1.10.1"
+ksp = "2.0.0-1.0.23"
 landscapistGlide = "2.4.7"
 landscapistPlaceholder = "2.4.7"
 lifecycleRuntimeKtx = "2.8.7"
 loggingInterceptor = "4.12.0"
+mockitoCore = "5.12.0"
+mockitoKotlin = "5.4.0"
 navigationCompose = "2.8.9"
 retrofit = "2.11.0"
 roomRuntime = "2.7.1"
 sonar = "6.0.1.5171"
-ksp = "2.0.0-1.0.23"
+turbine = "0.12.1"
 
 [libraries]
 
@@ -29,6 +34,7 @@ ksp = "2.0.0-1.0.23"
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "coreTesting" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
@@ -64,6 +70,10 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "j
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
+mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
