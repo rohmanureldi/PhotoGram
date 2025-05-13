@@ -51,6 +51,10 @@ android {
         }
     }
 
+    lint {
+        checkTestSources = false
+    }
+
     kotlinOptions {
         jvmTarget = "11"
     }
