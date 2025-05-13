@@ -37,8 +37,8 @@ fun ArtworkDataResponse.toArtwork(): ArtworkDomain {
 
 fun ArtworkDetailDataResponse.toArtworkDetail(): ArtworkDetailDomain {
     return ArtworkDetailDomain(
-        id = id,
-        title = title,
+        id = id ?: 0,
+        title = title.orEmpty(),
         artistName = artistName.orEmpty(),
         dateDisplay = dateDisplay.orEmpty(),
         mediumDisplay = mediumDisplay.orEmpty(),

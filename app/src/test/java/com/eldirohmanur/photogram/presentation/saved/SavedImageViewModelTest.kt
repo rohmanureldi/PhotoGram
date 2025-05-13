@@ -1,4 +1,4 @@
-package com.eldirohmanur.photogram
+package com.eldirohmanur.photogram.presentation.saved
 
 import app.cash.turbine.test
 import com.eldirohmanur.photogram.domain.model.ArtworkDomain
@@ -6,7 +6,6 @@ import com.eldirohmanur.photogram.domain.usecase.DeleteSavedArtworkUseCase
 import com.eldirohmanur.photogram.domain.usecase.GetSavedArtworksUseCase
 import com.eldirohmanur.photogram.presentation.mapper.toArtworkUI
 import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
-import com.eldirohmanur.photogram.presentation.saved.SavedImagesViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
