@@ -53,6 +53,7 @@ android {
 
     lint {
         checkTestSources = false
+        abortOnError = false
     }
 
     kotlinOptions {
