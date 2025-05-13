@@ -1,12 +1,9 @@
 package com.eldirohmanur.photogram.domain.usecase
 
 import com.eldirohmanur.photogram.data.source.remote.model.ArtworkDetailDataResponse
-import com.eldirohmanur.photogram.domain.model.ArtworkDetailDomain
 import com.eldirohmanur.photogram.domain.model.ArtworkDomain
 import com.eldirohmanur.photogram.domain.toArtworkDetail
 import com.eldirohmanur.photogram.domain.toArtworkDomain
-import com.eldirohmanur.photogram.presentation.mapper.toArtworkUI
-import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -27,8 +24,6 @@ import kotlin.time.ExperimentalTime
 class SearchArtworkUseCaseTest {
     private lateinit var searchArtworksUseCase: SearchArtworksUseCase
     private lateinit var artworkDomain1: ArtworkDomain
-    private lateinit var artworkDetail1: ArtworkDetailDomain
-    private lateinit var artworkUi1: ArtworkUiModel
 
     // Test dispatcher
     private val testDispatcher = StandardTestDispatcher()
@@ -40,8 +35,6 @@ class SearchArtworkUseCaseTest {
 
         val artworkDetailResponse = ArtworkDetailDataResponse(id = 1, title = "Artwork 1")
         artworkDomain1 = artworkDetailResponse.toArtworkDetail().toArtworkDomain()
-        artworkDetail1 = artworkDetailResponse.toArtworkDetail()
-        artworkUi1 = artworkDomain1.toArtworkUI()
     }
 
     @After
@@ -52,7 +45,13 @@ class SearchArtworkUseCaseTest {
 
     @Test
     fun `invoke by artwork ui`() = runTest {
-        whenever(searchArtworksUseCase.invoke("abc")).thenReturn(Result.success(listOf(artworkDomain1)))
+        whenever(searchArtworksUseCase.invoke("abc")).thenReturn(
+            Result.success(
+                listOf(
+                    artworkDomain1
+                )
+            )
+        )
         val caller = searchArtworksUseCase("abc")
         assertEquals(true, caller.isSuccess)
         assertEquals(listOf(artworkDomain1), caller.getOrNull())
