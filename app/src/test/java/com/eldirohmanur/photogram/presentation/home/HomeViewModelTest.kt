@@ -249,4 +249,46 @@ class HomeViewModelTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
+
+    @Test
+    fun `init should handle error when loading artworks`() = runTest {
+        // Given
+        val errorMsg = "Network error"
+        whenever(getArtworksUseCase(1)).thenThrow(RuntimeException(errorMsg))
+
+        // When
+        viewModel = HomeViewModel(getArtworksUseCase, searchArtworksUseCase)
+        testDispatcher.scheduler.advanceUntilIdle() // Process all pending coroutines
+
+        // Then
+        viewModel.state.test {
+            val currentState = awaitItem()
+            assertEquals(false, currentState.isLoading)
+            assertEquals(false, currentState.isLoadMore)
+            assertEquals(emptyList<ArtworkUiModel>(), emptyList<ArtworkUiModel>())
+            assertEquals(true, !currentState.error.isNullOrEmpty())
+        }
+    }
+
+    @Test
+    fun `searchArtwork should handle error`() = runTest {
+        // Given
+        val errorMsg = "Network error"
+        whenever(searchArtworksUseCase("abc")).thenThrow(RuntimeException(errorMsg))
+
+        // When
+        viewModel = HomeViewModel(getArtworksUseCase, searchArtworksUseCase)
+        viewModel.onSearchQueryChange("abc")
+        testDispatcher.scheduler.advanceUntilIdle() // Process all pending coroutines
+
+        // Then
+        viewModel.state.test {
+            val currentState = awaitItem().also { println(it) }
+            assertEquals(false, currentState.isLoading)
+            assertEquals(false, currentState.isLoadMore)
+            assertEquals(emptyList<ArtworkUiModel>(), emptyList<ArtworkUiModel>())
+            assertEquals(true, !currentState.error.isNullOrEmpty())
+            verify(searchArtworksUseCase).invoke("abc")
+        }
+    }
 }
