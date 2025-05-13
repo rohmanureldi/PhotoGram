@@ -70,6 +70,12 @@ android {
             property("sonar.coverage.jacoco.xmlReportPaths", "${project.layout.buildDirectory.get()}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
         }
     }
+
+    kotlin {
+        compilerOptions {
+            freeCompilerArgs.add("-Xuse-k2=false")
+        }
+    }
 }
 
 tasks.register<JacocoReport>("jacocoTestReport") {
