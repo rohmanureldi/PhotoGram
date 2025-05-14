@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -49,5 +50,20 @@ class FetchArtworkUseCaseTest {
 
         assertEquals(listOf(artworkDomain1), response)
         verify(repo).getArtworks(1, 20)
+    }
+
+    @Test
+    fun `invoke() should return null when repository returns failure`() = runTest {
+        // Given
+        val page = 1
+        val limit = 20
+        whenever(repo.getArtworks(page, limit)).thenReturn(Result.failure(Exception("Error")))
+
+        // When
+        val result = fetchArtworkUseCase.invoke(page, limit)
+
+        // Then
+        assertNull(result)
+        verify(repo).getArtworks(page, limit)
     }
 }
