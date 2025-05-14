@@ -4,8 +4,9 @@ import app.cash.turbine.test
 import com.eldirohmanur.photogram.domain.model.ArtworkDomain
 import com.eldirohmanur.photogram.domain.usecase.FetchArtworksUseCase
 import com.eldirohmanur.photogram.domain.usecase.SearchArtworksUseCase
-import com.eldirohmanur.photogram.presentation.mapper.toArtworkUI
+import com.eldirohmanur.photogram.presentation.mapper.ArtworkMapperUi
 import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
+import com.eldirohmanur.photogram.utils.Dispatch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -29,14 +30,29 @@ import kotlin.time.ExperimentalTime
 class HomeViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private lateinit var viewModel: HomeViewModel
+    private val viewModel: HomeViewModel by lazy {
+        HomeViewModel(
+            getArtworksUseCase = getArtworksUseCase,
+            searchArtworksUseCase = searchArtworksUseCase,
+            mapper = uiMapper,
+            dispatch = dispatch
+        )
+    }
     private lateinit var getArtworksUseCase: FetchArtworksUseCase
     private lateinit var searchArtworksUseCase: SearchArtworksUseCase
+    private lateinit var uiMapper: ArtworkMapperUi
+    private lateinit var dispatch: Dispatch
 
     @Before
     fun setup() {
         // Set the main dispatcher to our test dispatcher
         Dispatchers.setMain(testDispatcher)
+
+        dispatch = mock()
+        uiMapper = mock()
+        whenever(dispatch.default).thenReturn(testDispatcher)
+        whenever(dispatch.io).thenReturn(testDispatcher)
+        whenever(dispatch.main).thenReturn(testDispatcher)
 
         // Initialize mocks
         getArtworksUseCase = mock()
@@ -58,11 +74,9 @@ class HomeViewModelTest {
             ArtworkDomain(id = 1, title = "Artwork 1", "", "", "", "", "", false, ""),
             ArtworkDomain(id = 2, title = "Artwork 2", "", "", "", "", "", false, ""),
         )
-        val expected = artworks.map { it.toArtworkUI() }
+        val expected = artworks.map { uiMapper.toArtworkUI(it) }
 
         whenever(getArtworksUseCase(currentPage)).thenReturn(artworks)
-
-        viewModel = HomeViewModel(getArtworksUseCase, searchArtworksUseCase)
 
         viewModel.state.test {
             awaitItem()
@@ -82,7 +96,6 @@ class HomeViewModelTest {
 
     @Test
     fun `on query change should fetch loadArtwork if query is empty`() = runTest {
-        viewModel = HomeViewModel(getArtworksUseCase, searchArtworksUseCase)
         viewModel.onSearchQueryChange("")
         testDispatcher.scheduler.advanceUntilIdle()
 
@@ -93,7 +106,6 @@ class HomeViewModelTest {
     @Test
     fun `on query change should search artwork if query is NOT empty`() = runTest {
         val query = "abc"
-        viewModel = HomeViewModel(getArtworksUseCase, searchArtworksUseCase)
         viewModel.onSearchQueryChange(query)
         testDispatcher.scheduler.advanceUntilIdle()
 
@@ -107,7 +119,6 @@ class HomeViewModelTest {
     @Test
     fun `clear search should fetch default artworks`() = runTest {
         val query = "abc"
-        viewModel = HomeViewModel(getArtworksUseCase, searchArtworksUseCase)
         viewModel.onSearchQueryChange(query)
 
         viewModel.state.test {
@@ -122,7 +133,6 @@ class HomeViewModelTest {
 
     @Test
     fun `isLoading initial state`() = runTest {
-        viewModel = HomeViewModel(getArtworksUseCase, searchArtworksUseCase)
         viewModel.state.test {
             awaitItem() //initial state
             assertEquals(true, awaitItem().isLoading)
@@ -133,7 +143,6 @@ class HomeViewModelTest {
     @Test
     fun `isLoadMore state on loadArtwork()`() = runTest {
         val loadSecondPage = 2
-        viewModel = HomeViewModel(getArtworksUseCase, searchArtworksUseCase)
         viewModel.state.test {
             awaitItem() //initial state
 
@@ -155,7 +164,6 @@ class HomeViewModelTest {
         val loadFirstPage = 1
         val loadSecondPage = 2
         val query = "abc"
-        viewModel = HomeViewModel(getArtworksUseCase, searchArtworksUseCase)
 
         val artworks = listOf(
             ArtworkDomain(id = 1, title = "Artwork 1", "", "", "", "", "", false, ""),
@@ -185,7 +193,6 @@ class HomeViewModelTest {
 
     @Test
     fun `searchArtwork should do nothing if query is empty`() = runTest {
-        viewModel = HomeViewModel(getArtworksUseCase, searchArtworksUseCase)
         viewModel.searchArtworks()
         verifyNoInteractions(searchArtworksUseCase)
     }
@@ -193,7 +200,6 @@ class HomeViewModelTest {
     @Test
     fun `searchArtwork should do nothing if isLoading is true`() = runTest {
         val query = "abc"
-        viewModel = HomeViewModel(getArtworksUseCase, searchArtworksUseCase)
 
         val artworks = listOf(
             ArtworkDomain(id = 1, title = "Artwork 1", "", "", "", "", "", false, ""),
@@ -205,8 +211,8 @@ class HomeViewModelTest {
         viewModel.onSearchQueryChange(query) // first load
 
         viewModel.state.test {
-            awaitItem().also { println(it) }
-            val state = awaitItem().also { println(it) }
+            awaitItem()
+            val state = awaitItem()
             viewModel.onSearchQueryChange(query)
             assertEquals(true, state.isLoading)
             verify(searchArtworksUseCase, calls(1))
@@ -218,7 +224,6 @@ class HomeViewModelTest {
     @Test
     fun `searchArtwork should do nothing if isLoadMore is true`() = runTest {
         val query = "abc"
-        viewModel = HomeViewModel(getArtworksUseCase, searchArtworksUseCase)
 
         val artworks = listOf(
             ArtworkDomain(id = 1, title = "Artwork 1", "", "", "", "", "", false, ""),
@@ -242,7 +247,7 @@ class HomeViewModelTest {
 
             viewModel.loadArtworks()
             awaitItem()
-            val lastState = awaitItem().also { println(it) }
+            val lastState = awaitItem()
             assertEquals(true, lastState.isLoadMore)
 
             verify(searchArtworksUseCase, times(2)).invoke(query, 2)
@@ -257,7 +262,7 @@ class HomeViewModelTest {
         whenever(getArtworksUseCase(1)).thenThrow(RuntimeException(errorMsg))
 
         // When
-        viewModel = HomeViewModel(getArtworksUseCase, searchArtworksUseCase)
+        viewModel
         testDispatcher.scheduler.advanceUntilIdle() // Process all pending coroutines
 
         // Then
@@ -277,13 +282,12 @@ class HomeViewModelTest {
         whenever(searchArtworksUseCase("abc")).thenThrow(RuntimeException(errorMsg))
 
         // When
-        viewModel = HomeViewModel(getArtworksUseCase, searchArtworksUseCase)
         viewModel.onSearchQueryChange("abc")
         testDispatcher.scheduler.advanceUntilIdle() // Process all pending coroutines
 
         // Then
         viewModel.state.test {
-            val currentState = awaitItem().also { println(it) }
+            val currentState = awaitItem()
             assertEquals(false, currentState.isLoading)
             assertEquals(false, currentState.isLoadMore)
             assertEquals(emptyList<ArtworkUiModel>(), emptyList<ArtworkUiModel>())

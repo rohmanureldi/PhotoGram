@@ -2,6 +2,7 @@ package com.eldirohmanur.photogram.domain.usecase
 
 import app.cash.turbine.test
 import com.eldirohmanur.photogram.domain.model.ArtworkDomain
+import com.eldirohmanur.photogram.domain.repo.SavedArtworkRepo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -21,7 +22,10 @@ import kotlin.time.ExperimentalTime
 @ExperimentalCoroutinesApi
 @ExperimentalTime
 class GetSavedArtworkUseCaseTest {
-    private lateinit var getSavedArtworksUseCase: GetSavedArtworksUseCase
+    private lateinit var repo: SavedArtworkRepo
+    private val useCase by lazy {
+        GetSavedArtworksUseCase(repo)
+    }
     private lateinit var artworkDomain1: ArtworkDomain
 
     // Test dispatcher
@@ -30,8 +34,8 @@ class GetSavedArtworkUseCaseTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        getSavedArtworksUseCase = mock()
-        artworkDomain1 = ArtworkDomain(id = 1, title = "Artwork 1", "", "", "", "", "", false, "")
+        repo = mock()
+        artworkDomain1 = ArtworkDomain(id = 1, title = "Artwork 1")
     }
 
     @After
@@ -42,23 +46,23 @@ class GetSavedArtworkUseCaseTest {
 
     @Test
     fun `test fetch without id`() = runTest {
-        whenever(getSavedArtworksUseCase.invoke()).thenReturn(flowOf(listOf(artworkDomain1)))
-        val caller = getSavedArtworksUseCase()
+        whenever(repo.getSavedArtworks()).thenReturn(flowOf(listOf(artworkDomain1)))
+        val caller = useCase()
 
         caller.test {
             val response = awaitItem()
             assertEquals(listOf(artworkDomain1), response)
             cancelAndIgnoreRemainingEvents()
         }
-        verify(getSavedArtworksUseCase).invoke()
+        verify(repo).getSavedArtworks()
     }
 
     @Test
     fun `fetch with id`() = runTest {
-        whenever(getSavedArtworksUseCase.invoke(1)).thenReturn(artworkDomain1)
-        val response = getSavedArtworksUseCase(1)
+        whenever(repo.getSavedArtworkById(1)).thenReturn(artworkDomain1)
+        val response = useCase(1)
 
         assertEquals(artworkDomain1, response)
-        verify(getSavedArtworksUseCase).invoke(1)
+        verify(repo).getSavedArtworkById(1)
     }
 }

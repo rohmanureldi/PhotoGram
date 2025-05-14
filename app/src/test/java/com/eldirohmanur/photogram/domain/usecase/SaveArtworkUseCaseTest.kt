@@ -1,11 +1,9 @@
 package com.eldirohmanur.photogram.domain.usecase
 
-import com.eldirohmanur.photogram.data.source.remote.model.ArtworkDetailDataResponse
+import com.eldirohmanur.photogram.data.repo.SavedArtworkRepoImpl
+import com.eldirohmanur.photogram.domain.ArtworkMapperDomain
 import com.eldirohmanur.photogram.domain.model.ArtworkDetailDomain
 import com.eldirohmanur.photogram.domain.model.ArtworkDomain
-import com.eldirohmanur.photogram.domain.toArtworkDetail
-import com.eldirohmanur.photogram.domain.toArtworkDomain
-import com.eldirohmanur.photogram.presentation.mapper.toArtworkUI
 import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,10 +22,14 @@ import kotlin.time.ExperimentalTime
 @ExperimentalCoroutinesApi
 @ExperimentalTime
 class SaveArtworkUseCaseTest {
-    private lateinit var savedArtworksUseCase: SaveArtworkUseCase
+    private val savedArtworksUseCase by lazy {
+        SaveArtworkUseCase(repo, domainMapper)
+    }
+    private lateinit var repo: SavedArtworkRepoImpl
     private lateinit var artworkDomain1: ArtworkDomain
     private lateinit var artworkDetail1: ArtworkDetailDomain
     private lateinit var artworkUi1: ArtworkUiModel
+    private lateinit var domainMapper: ArtworkMapperDomain
 
     // Test dispatcher
     private val testDispatcher = StandardTestDispatcher()
@@ -35,12 +37,14 @@ class SaveArtworkUseCaseTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        savedArtworksUseCase = mock()
+        repo = mock()
+        domainMapper = mock()
 
-        val artworkDetailResponse = ArtworkDetailDataResponse(id = 1, title = "Artwork 1")
-        artworkDomain1 = artworkDetailResponse.toArtworkDetail().toArtworkDomain()
-        artworkDetail1 = artworkDetailResponse.toArtworkDetail()
-        artworkUi1 = artworkDomain1.toArtworkUI()
+        artworkDomain1 = ArtworkDomain()
+        artworkDetail1 = ArtworkDetailDomain()
+        artworkUi1 = ArtworkUiModel()
+
+        whenever(domainMapper.toArtworkDomain(artworkDetail1, true)).thenReturn(artworkDomain1)
     }
 
     @After
@@ -51,25 +55,25 @@ class SaveArtworkUseCaseTest {
 
     @Test
     fun `invoke by artwork ui`() = runTest {
-        whenever(savedArtworksUseCase.invoke(artworkUi1)).thenReturn(Unit)
-        savedArtworksUseCase(artworkUi1)
+        whenever(repo.saveArtwork(artworkDomain1)).thenReturn(Unit)
+        savedArtworksUseCase(artworkDomain1)
 
-        verify(savedArtworksUseCase).invoke(artworkUi1)
+        verify(repo).saveArtwork(artworkDomain1)
     }
 
     @Test
     fun `invoke by artwork detail`() = runTest {
-        whenever(savedArtworksUseCase.invoke(artworkDetail1)).thenReturn(Unit)
+        whenever(repo.saveArtwork(artworkDomain1)).thenReturn(Unit)
         savedArtworksUseCase(artworkDetail1)
 
-        verify(savedArtworksUseCase).invoke(artworkDetail1)
+        verify(repo).saveArtwork(artworkDomain1)
     }
 
     @Test
     fun `invoke by artwork domain`() = runTest {
-        whenever(savedArtworksUseCase.invoke(artworkDomain1)).thenReturn(Unit)
+        whenever(repo.saveArtwork(artworkDomain1)).thenReturn(Unit)
         savedArtworksUseCase(artworkDomain1)
 
-        verify(savedArtworksUseCase).invoke(artworkDomain1)
+        verify(repo).saveArtwork(artworkDomain1)
     }
 }

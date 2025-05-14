@@ -2,11 +2,12 @@ package com.eldirohmanur.photogram.presentation.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.eldirohmanur.photogram.domain.ArtworkMapperDomain
 import com.eldirohmanur.photogram.domain.usecase.DeleteSavedArtworkUseCase
 import com.eldirohmanur.photogram.domain.usecase.FetchArtworkDetailUseCase
 import com.eldirohmanur.photogram.domain.usecase.GetSavedArtworksUseCase
 import com.eldirohmanur.photogram.domain.usecase.SaveArtworkUseCase
-import com.eldirohmanur.photogram.presentation.mapper.toArtworkUI
+import com.eldirohmanur.photogram.presentation.mapper.ArtworkMapperUi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +22,9 @@ class DetailViewModel @Inject constructor(
     private val getArtworkByIdUseCase: GetSavedArtworksUseCase,
     private val fetchArtworkDetailUseCase: FetchArtworkDetailUseCase,
     private val saveArtworkUseCase: SaveArtworkUseCase,
-    private val removeSavedArtworkUseCase: DeleteSavedArtworkUseCase
+    private val removeSavedArtworkUseCase: DeleteSavedArtworkUseCase,
+    private val mapper: ArtworkMapperUi,
+    private val domainMapper: ArtworkMapperDomain
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DetailScreenState())
@@ -32,10 +35,11 @@ class DetailViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true, error = null) }
 
             try {
-                val artwork = getArtworkByIdUseCase(artworkId) ?: fetchArtworkDetailUseCase(artworkId)
+                val artwork =
+                    getArtworkByIdUseCase(artworkId) ?: fetchArtworkDetailUseCase(artworkId)
                 _state.update {
                     it.copy(
-                        artwork = artwork?.toArtworkUI(),
+                        artwork = artwork?.let { mapper.toArtworkUI(it) },
                         isLoading = false
                     )
                 }
@@ -55,7 +59,8 @@ class DetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                saveArtworkUseCase(artwork)
+                val artworkDomain = domainMapper.toArtworkDomain(artwork, true)
+                saveArtworkUseCase(artworkDomain)
                 _state.update {
                     it.copy(
                         artwork = artwork.copy(isSaved = true)

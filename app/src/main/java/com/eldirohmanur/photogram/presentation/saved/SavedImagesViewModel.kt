@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eldirohmanur.photogram.domain.usecase.DeleteSavedArtworkUseCase
 import com.eldirohmanur.photogram.domain.usecase.GetSavedArtworksUseCase
-import com.eldirohmanur.photogram.presentation.mapper.toArtworkUI
+import com.eldirohmanur.photogram.presentation.mapper.ArtworkMapperUi
+import com.eldirohmanur.photogram.utils.Dispatch
+import com.eldirohmanur.photogram.utils.mapAsync
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +20,9 @@ import javax.inject.Inject
 @HiltViewModel
 class SavedImagesViewModel @Inject constructor(
     private val getSavedArtworksUseCase: GetSavedArtworksUseCase,
-    private val removeSavedArtworkUseCase: DeleteSavedArtworkUseCase
+    private val removeSavedArtworkUseCase: DeleteSavedArtworkUseCase,
+    private val mapper: ArtworkMapperUi,
+    private val dispatch: Dispatch
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SavedScreenState())
@@ -34,8 +38,8 @@ class SavedImagesViewModel @Inject constructor(
 
             try {
                 getSavedArtworksUseCase().map {
-                    it.map {
-                        it.toArtworkUI()
+                    it.mapAsync(dispatch) {
+                        mapper.toArtworkUI(it)
                     }
                 }.collect { artworks ->
                     _state.update {

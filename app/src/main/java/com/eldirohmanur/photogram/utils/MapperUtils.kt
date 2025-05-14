@@ -4,7 +4,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
-suspend fun <T, I> List<T>.mapAsync(
+suspend fun <T, I> Iterable<T>.mapAsync(
     dispatch: Dispatch,
     mapper: suspend (T) -> I
 ): List<I> {

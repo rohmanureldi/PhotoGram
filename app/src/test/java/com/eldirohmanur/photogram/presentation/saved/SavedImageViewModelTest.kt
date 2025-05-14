@@ -4,8 +4,9 @@ import app.cash.turbine.test
 import com.eldirohmanur.photogram.domain.model.ArtworkDomain
 import com.eldirohmanur.photogram.domain.usecase.DeleteSavedArtworkUseCase
 import com.eldirohmanur.photogram.domain.usecase.GetSavedArtworksUseCase
-import com.eldirohmanur.photogram.presentation.mapper.toArtworkUI
+import com.eldirohmanur.photogram.presentation.mapper.ArtworkMapperUi
 import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
+import com.eldirohmanur.photogram.utils.Dispatch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -24,12 +25,23 @@ import kotlin.time.ExperimentalTime
 
 @ExperimentalCoroutinesApi
 @ExperimentalTime
-class SavedImagesViewModelTest {
+class SavedImageViewModelTest {
 
     // Mocks
     private lateinit var getSavedArtworksUseCase: GetSavedArtworksUseCase
     private lateinit var removeSavedArtworkUseCase: DeleteSavedArtworkUseCase
-    private lateinit var viewModel: SavedImagesViewModel
+    private lateinit var artworkDomains: ArtworkDomain
+    private lateinit var artworkUis: ArtworkUiModel
+    private lateinit var uiMapper: ArtworkMapperUi
+    private lateinit var dispatch: Dispatch
+    private val viewModel: SavedImagesViewModel by lazy {
+        SavedImagesViewModel(
+            getSavedArtworksUseCase = getSavedArtworksUseCase,
+            removeSavedArtworkUseCase = removeSavedArtworkUseCase,
+            mapper = uiMapper,
+            dispatch = dispatch
+        )
+    }
 
     // Test dispatcher
     private val testDispatcher = StandardTestDispatcher()
@@ -39,9 +51,40 @@ class SavedImagesViewModelTest {
         // Set the main dispatcher to our test dispatcher
         Dispatchers.setMain(testDispatcher)
 
-        // Initialize mocks
+        dispatch = mock()
+        uiMapper = mock()
         getSavedArtworksUseCase = mock()
         removeSavedArtworkUseCase = mock()
+        artworkDomains = ArtworkDomain(
+            id = 1,
+            title = "Artwork 1",
+            artistName = "",
+            dateDisplay = "",
+            mediumDisplay = "",
+            imageId = "",
+            description = "",
+            isSaved = false,
+            thumbnailUrl = ""
+        )
+
+        artworkUis = ArtworkUiModel(
+            id = 1,
+            title = "Artwork 1",
+            artist = "",
+            date = "",
+            imageUrl = "",
+            thumbnailUrl = "",
+            description = "",
+            imageId = "",
+            isSaved = false
+        )
+
+
+        whenever(dispatch.default).thenReturn(testDispatcher)
+        whenever(dispatch.io).thenReturn(testDispatcher)
+        whenever(dispatch.main).thenReturn(testDispatcher)
+        whenever(uiMapper.toArtworkUI(artworkDomains)).thenReturn(artworkUis)
+
     }
 
     @After
@@ -53,24 +96,20 @@ class SavedImagesViewModelTest {
     @Test
     fun `init should load saved artworks and update state`() = runTest {
         // Given
-        val artworks = listOf(
-            ArtworkDomain(id = 1, title = "Artwork 1", "", "", "", "", "", false, ""),
-            ArtworkDomain(id = 2, title = "Artwork 2", "", "", "", "", "", false, ""),
-        )
-        val expectedUiArtworks = artworks.map { it.toArtworkUI() }
-
-        whenever(getSavedArtworksUseCase()).thenReturn(flowOf(artworks))
+        val expectedUiArtworks = listOf(artworkUis)
+        whenever(getSavedArtworksUseCase()).thenReturn(flowOf(listOf(artworkDomains)))
 
         // When
-        viewModel = SavedImagesViewModel(getSavedArtworksUseCase, removeSavedArtworkUseCase)
+        viewModel // warm initiate
         testDispatcher.scheduler.advanceUntilIdle() // Process all pending coroutines
-
         // Then
         viewModel.state.test {
             val currentState = awaitItem()
             assertEquals(false, currentState.isLoading)
             assertEquals(expectedUiArtworks, currentState.savedArtworks)
         }
+        verify(getSavedArtworksUseCase).invoke()
+//        verify(uiMapper).toArtworkUI(artworkDomains)
     }
 
     @Test
@@ -79,7 +118,7 @@ class SavedImagesViewModelTest {
         whenever(getSavedArtworksUseCase()).thenThrow(RuntimeException("Network error"))
 
         // When
-        viewModel = SavedImagesViewModel(getSavedArtworksUseCase, removeSavedArtworkUseCase)
+        viewModel // wam initiate
         testDispatcher.scheduler.advanceUntilIdle() // Process all pending coroutines
 
         // Then
@@ -96,7 +135,6 @@ class SavedImagesViewModelTest {
         val artworkId = 1
         whenever(getSavedArtworksUseCase()).thenReturn(flowOf(emptyList()))
 
-        viewModel = SavedImagesViewModel(getSavedArtworksUseCase, removeSavedArtworkUseCase)
 
         // When
         viewModel.removeFromSaved(artworkId)
@@ -112,7 +150,6 @@ class SavedImagesViewModelTest {
         val artworkId = 1
         whenever(getSavedArtworksUseCase()).thenReturn(flowOf(emptyList()))
         whenever(removeSavedArtworkUseCase.invoke(artworkId)).thenThrow(RuntimeException("Delete error"))
-        viewModel = SavedImagesViewModel(getSavedArtworksUseCase, removeSavedArtworkUseCase)
 
         // When
         viewModel.removeFromSaved(artworkId)

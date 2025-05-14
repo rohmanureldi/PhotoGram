@@ -1,12 +1,13 @@
 package com.eldirohmanur.photogram.presentation.detail
 
 import app.cash.turbine.test
+import com.eldirohmanur.photogram.domain.ArtworkMapperDomain
 import com.eldirohmanur.photogram.domain.model.ArtworkDomain
 import com.eldirohmanur.photogram.domain.usecase.DeleteSavedArtworkUseCase
 import com.eldirohmanur.photogram.domain.usecase.FetchArtworkDetailUseCase
 import com.eldirohmanur.photogram.domain.usecase.GetSavedArtworksUseCase
 import com.eldirohmanur.photogram.domain.usecase.SaveArtworkUseCase
-import com.eldirohmanur.photogram.presentation.mapper.toArtworkUI
+import com.eldirohmanur.photogram.presentation.mapper.ArtworkMapperUi
 import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,9 +32,20 @@ class DetailViewModelTest {
     private lateinit var getArtworkByIdUseCase: GetSavedArtworksUseCase
     private lateinit var fetchArtworkDetailUseCase: FetchArtworkDetailUseCase
     private lateinit var saveArtworkUseCase: SaveArtworkUseCase
-    private lateinit var viewModel: DetailViewModel
+    private val viewModel: DetailViewModel by lazy {
+        DetailViewModel(
+            getArtworkByIdUseCase = getArtworkByIdUseCase,
+            fetchArtworkDetailUseCase = fetchArtworkDetailUseCase,
+            saveArtworkUseCase = saveArtworkUseCase,
+            removeSavedArtworkUseCase = removeSavedArtworkUseCase,
+            mapper = uiMapper,
+            domainMapper = domainMapper
+        )
+    }
     private lateinit var artworkDomain1: ArtworkDomain
     private lateinit var artworkUiModel1: ArtworkUiModel
+    private lateinit var uiMapper: ArtworkMapperUi
+    private lateinit var domainMapper: ArtworkMapperDomain
 
     // Test dispatcher
     private val testDispatcher = StandardTestDispatcher()
@@ -49,8 +61,14 @@ class DetailViewModelTest {
         getArtworkByIdUseCase = mock()
         fetchArtworkDetailUseCase = mock()
         saveArtworkUseCase = mock()
-        artworkDomain1 = ArtworkDomain(id = 1, title = "Artwork 1", "", "", "", "", "", false, "")
-        artworkUiModel1 = artworkDomain1.toArtworkUI()
+        uiMapper = mock()
+        domainMapper = mock()
+
+        artworkDomain1 = ArtworkDomain(id = 1, title = "Artwork 1")
+        artworkUiModel1 = ArtworkUiModel()
+
+        whenever(uiMapper.toArtworkUI(artworkDomain1)).thenReturn(artworkUiModel1)
+        whenever(domainMapper.toArtworkDomain(artworkUiModel1, true)).thenReturn(artworkDomain1)
     }
 
     @After
@@ -63,12 +81,6 @@ class DetailViewModelTest {
     fun `loadArtwork by id from local db`() = runTest {
         whenever(getArtworkByIdUseCase.invoke(1)).thenReturn(artworkDomain1)
 
-        viewModel = DetailViewModel(
-            getArtworkByIdUseCase,
-            fetchArtworkDetailUseCase,
-            saveArtworkUseCase,
-            removeSavedArtworkUseCase
-        )
         viewModel.loadArtwork(1)
         testDispatcher.scheduler.advanceUntilIdle()
 
@@ -85,12 +97,6 @@ class DetailViewModelTest {
         whenever(getArtworkByIdUseCase.invoke(1)).thenReturn(null)
         whenever(fetchArtworkDetailUseCase.invoke(1)).thenReturn(artworkDomain1)
 
-        viewModel = DetailViewModel(
-            getArtworkByIdUseCase,
-            fetchArtworkDetailUseCase,
-            saveArtworkUseCase,
-            removeSavedArtworkUseCase
-        )
         viewModel.loadArtwork(1)
         testDispatcher.scheduler.advanceUntilIdle()
 
@@ -107,12 +113,6 @@ class DetailViewModelTest {
     fun `loadArtwork loading state`() = runTest {
         whenever(getArtworkByIdUseCase.invoke(1)).thenReturn(artworkDomain1)
 
-        viewModel = DetailViewModel(
-            getArtworkByIdUseCase,
-            fetchArtworkDetailUseCase,
-            saveArtworkUseCase,
-            removeSavedArtworkUseCase
-        )
         viewModel.loadArtwork(1)
 
         viewModel.state.test {
@@ -128,12 +128,6 @@ class DetailViewModelTest {
     fun `loadArtwork error state`() = runTest {
         whenever(getArtworkByIdUseCase.invoke(1)).thenThrow(RuntimeException("Network error"))
 
-        viewModel = DetailViewModel(
-            getArtworkByIdUseCase,
-            fetchArtworkDetailUseCase,
-            saveArtworkUseCase,
-            removeSavedArtworkUseCase
-        )
         viewModel.loadArtwork(1)
         testDispatcher.scheduler.advanceUntilIdle()
 
@@ -149,14 +143,8 @@ class DetailViewModelTest {
     @Test
     fun `save artwork`() = runTest {
         whenever(getArtworkByIdUseCase.invoke(1)).thenReturn(artworkDomain1)
-        whenever(saveArtworkUseCase.invoke(artworkUiModel1)).thenReturn(Unit)
+        whenever(saveArtworkUseCase.invoke(artworkDomain1)).thenReturn(Unit)
 
-        viewModel = DetailViewModel(
-            getArtworkByIdUseCase,
-            fetchArtworkDetailUseCase,
-            saveArtworkUseCase,
-            removeSavedArtworkUseCase
-        )
         viewModel.loadArtwork(1)
         testDispatcher.scheduler.advanceUntilIdle()
         viewModel.saveArtwork()
@@ -173,14 +161,8 @@ class DetailViewModelTest {
     @Test
     fun `save artwork error`() = runTest {
         whenever(getArtworkByIdUseCase.invoke(1)).thenReturn(artworkDomain1)
-        whenever(saveArtworkUseCase.invoke(artworkUiModel1)).thenThrow(RuntimeException("Network error"))
+        whenever(saveArtworkUseCase.invoke(artworkDomain1)).thenThrow(RuntimeException("Network error"))
 
-        viewModel = DetailViewModel(
-            getArtworkByIdUseCase,
-            fetchArtworkDetailUseCase,
-            saveArtworkUseCase,
-            removeSavedArtworkUseCase
-        )
         viewModel.loadArtwork(1)
         testDispatcher.scheduler.advanceUntilIdle()
         viewModel.saveArtwork()
@@ -199,12 +181,6 @@ class DetailViewModelTest {
         whenever(getArtworkByIdUseCase.invoke(1)).thenReturn(artworkDomain1)
         whenever(removeSavedArtworkUseCase.invoke(1)).thenReturn(Unit)
 
-        viewModel = DetailViewModel(
-            getArtworkByIdUseCase,
-            fetchArtworkDetailUseCase,
-            saveArtworkUseCase,
-            removeSavedArtworkUseCase
-        )
         viewModel.loadArtwork(1)
         testDispatcher.scheduler.advanceUntilIdle()
         viewModel.removeFromSaved(1)
@@ -223,12 +199,6 @@ class DetailViewModelTest {
         whenever(getArtworkByIdUseCase.invoke(1)).thenReturn(artworkDomain1)
         whenever(removeSavedArtworkUseCase.invoke(1)).thenThrow(RuntimeException("Network error"))
 
-        viewModel = DetailViewModel(
-            getArtworkByIdUseCase,
-            fetchArtworkDetailUseCase,
-            saveArtworkUseCase,
-            removeSavedArtworkUseCase
-        )
         viewModel.loadArtwork(1)
         testDispatcher.scheduler.advanceUntilIdle()
         viewModel.removeFromSaved(1)

@@ -1,13 +1,14 @@
 package com.eldirohmanur.photogram.presentation.home
 
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eldirohmanur.photogram.domain.usecase.FetchArtworksUseCase
 import com.eldirohmanur.photogram.domain.usecase.SearchArtworksUseCase
+import com.eldirohmanur.photogram.presentation.mapper.ArtworkMapperUi
 import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
-import com.eldirohmanur.photogram.presentation.mapper.toArtworkUI
 import com.eldirohmanur.photogram.utils.ArtworkConst
+import com.eldirohmanur.photogram.utils.Dispatch
+import com.eldirohmanur.photogram.utils.mapAsync
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -21,7 +22,9 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getArtworksUseCase: FetchArtworksUseCase,
-    private val searchArtworksUseCase: SearchArtworksUseCase
+    private val searchArtworksUseCase: SearchArtworksUseCase,
+    private val mapper: ArtworkMapperUi,
+    private val dispatch: Dispatch
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeScreenState())
@@ -57,9 +60,13 @@ class HomeViewModel @Inject constructor(
             }
 
             try {
-                val response = getArtworksUseCase(currentPage, pageSize)?.map {
-                    it.toArtworkUI()
+                val response = getArtworksUseCase(
+                    page = currentPage,
+                    limit = pageSize
+                )?.mapAsync(dispatch) {
+                    mapper.toArtworkUI(it)
                 }
+
                 currentPage++
                 _state.update {
                     it.copy(
@@ -120,8 +127,8 @@ class HomeViewModel @Inject constructor(
                     query = query,
                     page = currentSearchPage
                 ).map {
-                    it.map {
-                        it.toArtworkUI()
+                    it.mapAsync(dispatch) {
+                        mapper.toArtworkUI(it)
                     }
                 }.getOrNull()
                 currentSearchPage++

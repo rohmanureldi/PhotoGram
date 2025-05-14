@@ -1,5 +1,6 @@
 package com.eldirohmanur.photogram.di
 
+import com.eldirohmanur.photogram.domain.ArtworkMapperDomain
 import com.eldirohmanur.photogram.domain.repo.ArtworkRepo
 import com.eldirohmanur.photogram.domain.repo.SavedArtworkRepo
 import com.eldirohmanur.photogram.domain.usecase.DeleteSavedArtworkUseCase
@@ -28,8 +29,9 @@ object UseCaseModule {
     @Provides
     @Singleton
     fun bindSaveArtworkUseCase(
-        repo: SavedArtworkRepo
-    ) = SaveArtworkUseCase(repo)
+        repo: SavedArtworkRepo,
+        mapper: ArtworkMapperDomain
+    ) = SaveArtworkUseCase(repo, mapper)
 
     @Provides
     @Singleton
@@ -52,6 +54,7 @@ object UseCaseModule {
     @Provides
     @Singleton
     fun bindGetDetailArtworkUseCase(
-        repo: ArtworkRepo
-    ) = FetchArtworkDetailUseCase(repo)
+        repo: ArtworkRepo,
+        mapper: ArtworkMapperDomain
+    ) = FetchArtworkDetailUseCase(repo, mapper)
 }

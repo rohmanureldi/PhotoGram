@@ -1,6 +1,9 @@
 package com.eldirohmanur.photogram.domain.usecase
 
+import com.eldirohmanur.photogram.domain.ArtworkMapperDomain
+import com.eldirohmanur.photogram.domain.model.ArtworkDetailDomain
 import com.eldirohmanur.photogram.domain.model.ArtworkDomain
+import com.eldirohmanur.photogram.domain.repo.ArtworkRepo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -19,8 +22,13 @@ import kotlin.time.ExperimentalTime
 @ExperimentalCoroutinesApi
 @ExperimentalTime
 class FetchArtworkDetailUseCaseTest {
-    private lateinit var fetchArtworkDetailUseCase: FetchArtworkDetailUseCase
+    private val fetchArtworkDetailUseCase by lazy {
+        FetchArtworkDetailUseCase(repo, mapper)
+    }
     private lateinit var artworkDomain1: ArtworkDomain
+    private lateinit var artworkDetail1: ArtworkDetailDomain
+    private lateinit var repo: ArtworkRepo
+    private lateinit var mapper: ArtworkMapperDomain
 
     // Test dispatcher
     private val testDispatcher = StandardTestDispatcher()
@@ -28,8 +36,12 @@ class FetchArtworkDetailUseCaseTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        fetchArtworkDetailUseCase = mock()
-        artworkDomain1 = ArtworkDomain(id = 1, title = "Artwork 1", "", "", "", "", "", false, "")
+        repo = mock()
+        mapper = mock()
+        artworkDomain1 = ArtworkDomain(id = 1, title = "Artwork 1")
+        artworkDetail1 = ArtworkDetailDomain(id = 1, title = "Artwork 1")
+
+        whenever(mapper.toArtworkDomain(artworkDetail1)).thenReturn(artworkDomain1)
     }
 
     @After
@@ -40,10 +52,10 @@ class FetchArtworkDetailUseCaseTest {
 
     @Test
     fun `test invoke`() = runTest {
-        whenever(fetchArtworkDetailUseCase.invoke(1)).thenReturn(artworkDomain1)
+        whenever(repo.getArtworkDetail(1)).thenReturn(Result.success(artworkDetail1))
         val response = fetchArtworkDetailUseCase(1)
 
         assertEquals(artworkDomain1, response)
-        verify(fetchArtworkDetailUseCase).invoke(1)
+        verify(repo).getArtworkDetail(1)
     }
 }

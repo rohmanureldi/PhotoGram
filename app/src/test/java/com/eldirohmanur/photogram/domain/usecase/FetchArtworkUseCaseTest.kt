@@ -1,6 +1,7 @@
 package com.eldirohmanur.photogram.domain.usecase
 
 import com.eldirohmanur.photogram.domain.model.ArtworkDomain
+import com.eldirohmanur.photogram.domain.repo.ArtworkRepo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -19,7 +20,10 @@ import kotlin.time.ExperimentalTime
 @ExperimentalCoroutinesApi
 @ExperimentalTime
 class FetchArtworkUseCaseTest {
-    private lateinit var fetchArtworkUseCase: FetchArtworksUseCase
+    private lateinit var repo: ArtworkRepo
+    private val fetchArtworkUseCase by lazy {
+        FetchArtworksUseCase(repo)
+    }
     private lateinit var artworkDomain1: ArtworkDomain
 
     // Test dispatcher
@@ -28,8 +32,8 @@ class FetchArtworkUseCaseTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        fetchArtworkUseCase = mock()
-        artworkDomain1 = ArtworkDomain(id = 1, title = "Artwork 1", "", "", "", "", "", false, "")
+        repo = mock()
+        artworkDomain1 = ArtworkDomain(id = 1, title = "Artwork 1")
     }
 
     @After
@@ -40,10 +44,10 @@ class FetchArtworkUseCaseTest {
 
     @Test
     fun `test invoke`() = runTest {
-        whenever(fetchArtworkUseCase.invoke(1)).thenReturn(listOf(artworkDomain1))
+        whenever(repo.getArtworks(1, 20)).thenReturn(Result.success(listOf(artworkDomain1)))
         val response = fetchArtworkUseCase(1)
 
         assertEquals(listOf(artworkDomain1), response)
-        verify(fetchArtworkUseCase).invoke(1)
+        verify(repo).getArtworks(1, 20)
     }
 }

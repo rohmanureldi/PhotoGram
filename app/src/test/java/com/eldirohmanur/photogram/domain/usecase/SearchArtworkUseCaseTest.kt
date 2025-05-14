@@ -1,9 +1,7 @@
 package com.eldirohmanur.photogram.domain.usecase
 
-import com.eldirohmanur.photogram.data.source.remote.model.ArtworkDetailDataResponse
+import com.eldirohmanur.photogram.data.repo.ArtworkRepoImpl
 import com.eldirohmanur.photogram.domain.model.ArtworkDomain
-import com.eldirohmanur.photogram.domain.toArtworkDetail
-import com.eldirohmanur.photogram.domain.toArtworkDomain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -22,8 +20,8 @@ import kotlin.time.ExperimentalTime
 @ExperimentalCoroutinesApi
 @ExperimentalTime
 class SearchArtworkUseCaseTest {
-    private lateinit var searchArtworksUseCase: SearchArtworksUseCase
     private lateinit var artworkDomain1: ArtworkDomain
+    private lateinit var repo: ArtworkRepoImpl
 
     // Test dispatcher
     private val testDispatcher = StandardTestDispatcher()
@@ -31,10 +29,8 @@ class SearchArtworkUseCaseTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        searchArtworksUseCase = mock()
-
-        val artworkDetailResponse = ArtworkDetailDataResponse(id = 1, title = "Artwork 1")
-        artworkDomain1 = artworkDetailResponse.toArtworkDetail().toArtworkDomain()
+        repo = mock()
+        artworkDomain1 = ArtworkDomain()
     }
 
     @After
@@ -44,17 +40,18 @@ class SearchArtworkUseCaseTest {
     }
 
     @Test
-    fun `invoke by artwork ui`() = runTest {
-        whenever(searchArtworksUseCase.invoke("abc")).thenReturn(
+    fun `search artwork`() = runTest {
+        whenever(repo.searchArtworks("abc", 1, 20)).thenReturn(
             Result.success(
                 listOf(
                     artworkDomain1
                 )
             )
         )
-        val caller = searchArtworksUseCase("abc")
+
+        val caller = SearchArtworksUseCase(repo).invoke("abc")
         assertEquals(true, caller.isSuccess)
         assertEquals(listOf(artworkDomain1), caller.getOrNull())
-        verify(searchArtworksUseCase).invoke("abc")
+        verify(repo).searchArtworks("abc", 1, 20)
     }
 }

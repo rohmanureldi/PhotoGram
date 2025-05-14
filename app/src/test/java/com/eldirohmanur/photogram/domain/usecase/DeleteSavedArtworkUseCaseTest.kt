@@ -1,5 +1,6 @@
 package com.eldirohmanur.photogram.domain.usecase
 
+import com.eldirohmanur.photogram.domain.repo.SavedArtworkRepo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -17,7 +18,10 @@ import kotlin.time.ExperimentalTime
 @ExperimentalCoroutinesApi
 @ExperimentalTime
 class DeleteSavedArtworkUseCaseTest {
-    private lateinit var removeSavedArtworkUseCase: DeleteSavedArtworkUseCase
+    private val removeSavedArtworkUseCase by lazy {
+        DeleteSavedArtworkUseCase(repo)
+    }
+    private lateinit var repo: SavedArtworkRepo
 
     // Test dispatcher
     private val testDispatcher = StandardTestDispatcher()
@@ -25,7 +29,7 @@ class DeleteSavedArtworkUseCaseTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        removeSavedArtworkUseCase = mock()
+        repo = mock()
     }
 
     @After
@@ -36,9 +40,9 @@ class DeleteSavedArtworkUseCaseTest {
 
     @Test
     fun `test invoke`() = runTest {
-        whenever(removeSavedArtworkUseCase.invoke(1)).thenReturn(Unit)
+        whenever(repo.deleteArtwork(1)).thenReturn(Unit)
         removeSavedArtworkUseCase(1)
 
-        verify(removeSavedArtworkUseCase).invoke(1)
+        verify(repo).deleteArtwork(1)
     }
 }
