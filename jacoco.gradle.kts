@@ -25,7 +25,8 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         "**/generated/**",
         "**/*_Provide*Factory*.*",
         "**/theme/**",
-        "**/utils/**"
+        "**/utils/**",
+        "**/App.kt"
     )
 
     val mainSrc = "${project.projectDir}/src/main/java"
