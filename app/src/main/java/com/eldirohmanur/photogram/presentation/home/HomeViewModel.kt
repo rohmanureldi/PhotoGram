@@ -10,6 +10,8 @@ import com.eldirohmanur.photogram.utils.ArtworkConst
 import com.eldirohmanur.photogram.utils.Dispatch
 import com.eldirohmanur.photogram.utils.mapAsync
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,7 +56,7 @@ class HomeViewModel @Inject constructor(
                 mState.copy(
                     isLoading = isInitialLoad, error = null,
                     isLoadMore = !isInitialLoad,
-                    artworks = emptyList<ArtworkUiModel>().takeIf { isInitialLoad }
+                    artworks = persistentListOf<ArtworkUiModel>().takeIf { isInitialLoad }
                         ?: mState.artworks
                 )
             }
@@ -70,7 +72,7 @@ class HomeViewModel @Inject constructor(
                 currentPage++
                 _state.update {
                     it.copy(
-                        artworks = it.artworks + response.orEmpty(),
+                        artworks = (it.artworks + response.orEmpty()).toImmutableList(),
                         isLoading = false,
                         isLoadMore = false
                     )
@@ -117,7 +119,7 @@ class HomeViewModel @Inject constructor(
                     isLoading = isInitialLoad,
                     error = null,
                     isLoadMore = !isInitialLoad,
-                    artworks = emptyList<ArtworkUiModel>().takeIf { isInitialLoad }
+                    artworks = persistentListOf<ArtworkUiModel>().takeIf { isInitialLoad }
                         ?: mState.artworks
                 )
             }
@@ -135,7 +137,7 @@ class HomeViewModel @Inject constructor(
                 searchResultIsEmpty = searchResults.isNullOrEmpty()
                 _state.update {
                     it.copy(
-                        artworks = it.artworks + searchResults.orEmpty(),
+                        artworks = (it.artworks + searchResults.orEmpty()).toImmutableList(),
                         isLoading = false,
                         isLoadMore = false
                     )

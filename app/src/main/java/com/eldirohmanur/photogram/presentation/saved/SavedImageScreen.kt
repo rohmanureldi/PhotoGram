@@ -1,6 +1,11 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class)
+
 package com.eldirohmanur.photogram.presentation.saved
 
 
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
+import com.eldirohmanur.photogram.ui.components.CpnArtworkGrid
 import com.eldirohmanur.photogram.utils.landscapist.CustomFailedPlugin
 import com.eldirohmanur.photogram.utils.landscapist.CustomThumbnailPlugin
 import com.skydoves.landscapist.ImageOptions
@@ -40,8 +46,10 @@ import com.skydoves.landscapist.glide.GlideImage
 
 @Composable
 fun SavedImagesScreen(
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     viewModel: SavedImagesViewModel = hiltViewModel<SavedImagesViewModel>(),
-    navigateToDetail: (Int) -> Unit
+    navigateToDetail: (Int, String) -> Unit
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -58,11 +66,19 @@ fun SavedImagesScreen(
                     .padding(16.dp)
             )
         } else {
-            SavedArtworkGrid(
+            CpnArtworkGrid(
                 artworks = state.savedArtworks,
+                isLoadMore = false,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedContentScope = animatedContentScope,
                 onArtworkClick = navigateToDetail,
                 onDeleteClick = viewModel::removeFromSaved
             )
+//            SavedArtworkGrid(
+//                artworks = state.savedArtworks,
+//                onArtworkClick = navigateToDetail,
+//                onDeleteClick = viewModel::removeFromSaved
+//            )
         }
     }
 }
@@ -70,7 +86,7 @@ fun SavedImagesScreen(
 @Composable
 fun SavedArtworkGrid(
     artworks: List<ArtworkUiModel>,
-    onArtworkClick: (Int) -> Unit,
+    onArtworkClick: (Int, String) -> Unit,
     onDeleteClick: (Int) -> Unit
 ) {
     LazyVerticalGrid(
@@ -92,14 +108,14 @@ fun SavedArtworkGrid(
 fun SavedArtworkItem(
     modifier: Modifier,
     artwork: ArtworkUiModel,
-    onArtworkClick: (Int) -> Unit,
+    onArtworkClick: (Int, String) -> Unit,
     onDeleteClick: (Int) -> Unit
 ) {
     Card(
         modifier = modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .clickable { onArtworkClick(artwork.id) }
+            .clickable { onArtworkClick(artwork.id, artwork.imageUrl) }
     ) {
         Column {
             Box {

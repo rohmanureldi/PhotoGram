@@ -1,5 +1,10 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class)
+
 package com.eldirohmanur.photogram.presentation.detail
 
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -30,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
 import com.eldirohmanur.photogram.utils.landscapist.CustomFailedPlugin
-import com.eldirohmanur.photogram.utils.landscapist.CustomThumbnailPlugin
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.components.rememberImageComponent
 import com.skydoves.landscapist.glide.GlideImage
@@ -38,6 +42,9 @@ import com.skydoves.landscapist.glide.GlideImage
 @Composable
 fun ArtworkDetailScreen(
     artworkId: Int,
+    artworkUrl: String,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     viewModel: DetailViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
@@ -60,31 +67,61 @@ fun ArtworkDetailScreen(
             }
         }
     ) { paddingValues ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(bottom = paddingValues.calculateBottomPadding())
         ) {
-            when {
-                state.isLoading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
+            with(sharedTransitionScope) {
+                GlideImage(
+                    imageModel = { artworkUrl }, // loading a network image using an URL.
+                    imageOptions = ImageOptions(
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.Center,
+                    ),
+                    component = rememberImageComponent {
+                        +CustomFailedPlugin
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                        .sharedElement(
+                            sharedContentState = sharedTransitionScope.rememberSharedContentState(key = artworkUrl),
+                            animatedVisibilityScope = animatedContentScope
+                        )
+                )
+            }
 
-                state.error != null -> {
-                    Text(
-                        text = state.error!!,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(16.dp)
-                    )
-                }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+                when {
+                    state.isLoading -> {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    }
 
-                artwork != null -> {
-                    ArtworkDetailContent(artwork = artwork)
+                    state.error != null -> {
+                        Text(
+                            text = state.error!!,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(16.dp)
+                        )
+                    }
+
+                    artwork != null -> {
+                        ArtworkDetailContent(
+                            artwork = artwork,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedContentScope = animatedContentScope
+                        )
+                    }
                 }
             }
         }
+
     }
 }
 
@@ -104,66 +141,57 @@ private fun SaveArtworkButton(
 }
 
 @Composable
-fun ArtworkDetailContent(artwork: ArtworkUiModel) {
+fun ArtworkDetailContent(
+    artwork: ArtworkUiModel,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
+) {
     val scrollState = rememberScrollState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(16.dp)
-    ) {
-        GlideImage(
-            imageModel = { artwork.imageUrl }, // loading a network image using an URL.
-            imageOptions = ImageOptions(
-                contentScale = ContentScale.FillWidth,
-                alignment = Alignment.Center,
-                contentDescription = artwork.title
-            ),
-            component = rememberImageComponent {
-                +CustomThumbnailPlugin(artwork.thumbnailUrl)
-                +CustomFailedPlugin
-            },
+    with(sharedTransitionScope) {
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp)
-        )
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(16.dp)
+        ) {
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = artwork.title,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
+            Text(
+                text = artwork.title,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            text = "Artist: ${artwork.artist}",
-            style = MaterialTheme.typography.bodyLarge
-        )
+            Text(
+                text = "Artist: ${artwork.artist}",
+                style = MaterialTheme.typography.bodyLarge
+            )
 
-        Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-        Text(
-            text = "Date: ${artwork.date}",
-            style = MaterialTheme.typography.bodyMedium
-        )
+            Text(
+                text = "Date: ${artwork.date}",
+                style = MaterialTheme.typography.bodyMedium
+            )
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "Description",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
-        )
+            Text(
+                text = "Description",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            text = artwork.description.ifEmpty { "No description available." },
-            style = MaterialTheme.typography.bodyMedium
-        )
+            Text(
+                text = artwork.description.ifEmpty { "No description available." },
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
     }
 }

@@ -8,6 +8,7 @@ import com.eldirohmanur.photogram.presentation.mapper.ArtworkMapperUi
 import com.eldirohmanur.photogram.utils.Dispatch
 import com.eldirohmanur.photogram.utils.mapAsync
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,7 +45,7 @@ class SavedImagesViewModel @Inject constructor(
                 }.collect { artworks ->
                     _state.update {
                         it.copy(
-                            savedArtworks = artworks,
+                            savedArtworks = artworks.toImmutableList(),
                             isLoading = false
                         )
                     }

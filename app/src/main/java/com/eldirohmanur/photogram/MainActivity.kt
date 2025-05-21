@@ -1,10 +1,17 @@
 package com.eldirohmanur.photogram
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -23,20 +30,20 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import androidx.navigation.toRoute
 import com.eldirohmanur.photogram.presentation.detail.ArtworkDetailScreen
 import com.eldirohmanur.photogram.presentation.home.HomeScreen
 import com.eldirohmanur.photogram.presentation.saved.SavedImagesScreen
 import com.eldirohmanur.photogram.ui.theme.PhotoGramTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.serialization.Serializable
 
 
 @AndroidEntryPoint
@@ -53,7 +60,7 @@ class MainActivity : ComponentActivity() {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun ArtGalleryApp() {
     val navController = rememberNavController()
@@ -70,8 +77,8 @@ fun ArtGalleryApp() {
                 title = {
                     Text(
                         text = when (currentRoute) {
-                            Screen.Home.route -> "Photograms"
-                            Screen.Saved.route -> "Saved Arts"
+                            Screen.Home.toString() -> "Photograms"
+                            Screen.Saved.toString() -> "Saved Arts"
                             Screen.Detail.route -> "Artwork Details"
                             else -> "Art Gallery"
                         }
@@ -98,48 +105,54 @@ fun ArtGalleryApp() {
             )
         },
         bottomBar = {
-            if (currentRoute != Screen.Detail.route) {
+            Log.e("TESTING", "ArtGalleryApp: ${Screen.Detail.route}")
+            AnimatedVisibility(
+                visible = currentRoute != Screen.Detail.route,
+                enter = fadeIn() + expandVertically(expandFrom = Alignment.Bottom),
+                exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top)
+            ) {
                 BottomNavigation(navController = navController)
             }
         }
     ) { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = Screen.Home.route,
-            modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding(), top = paddingValues.calculateTopPadding())
-        ) {
-            composable(Screen.Home.route) {
-                HomeScreen(
-                    navigateToDetail = { artworkId ->
-                        val route = Screen.Detail.route.replace(
-                            oldValue = "{artworkId}",
-                            newValue = "$artworkId"
-                        )
-                        navController.navigate(route)
-                    }
+        SharedTransitionLayout {
+            NavHost(
+                navController = navController,
+                startDestination = Screen.Home,
+                modifier = Modifier.padding(
+                    bottom = paddingValues.calculateBottomPadding(),
+                    top = paddingValues.calculateTopPadding()
                 )
-            }
-            composable(Screen.Saved.route) {
-                SavedImagesScreen(
-                    navigateToDetail = { artworkId ->
-                        val route = Screen.Detail.route.replace(
-                            oldValue = "{artworkId}",
-                            newValue = "$artworkId"
-                        )
-                        navController.navigate(route)
-                    }
-                )
-            }
-            composable(
-                route = Screen.Detail.route,
-                arguments = listOf(
-                    navArgument("artworkId") { type = NavType.IntType }
-                )
-            ) { backStackEntry ->
-                val artworkId = backStackEntry.arguments?.getInt("artworkId") ?: 0
-                ArtworkDetailScreen(
-                    artworkId = artworkId
-                )
+            ) {
+                composable<Screen.Home> {
+                    HomeScreen(
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedContentScope = this@composable,
+                        navigateToDetail = { artworkId, artworkUrl ->
+                            val route = Screen.Detail(artworkId, artworkUrl)
+                            navController.navigate(route)
+                        }
+                    )
+                }
+                composable<Screen.Saved> {
+                    SavedImagesScreen(
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedContentScope = this@composable,
+                        navigateToDetail = { artworkId, artworkUrl ->
+                            val route = Screen.Detail(artworkId, artworkUrl)
+                            navController.navigate(route)
+                        }
+                    )
+                }
+                composable<Screen.Detail> { backStackEntry ->
+                    val args = backStackEntry.toRoute<Screen.Detail>()
+                    ArtworkDetailScreen(
+                        artworkId = args.artworkId,
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedContentScope = this@composable,
+                        artworkUrl = args.artworkUrl
+                    )
+                }
             }
         }
     }
@@ -148,8 +161,8 @@ fun ArtGalleryApp() {
 @Composable
 fun BottomNavigation(navController: NavController) {
     val items = listOf(
-        Screen.Home,
-        Screen.Saved
+        Screen.Home to Icons.Default.Home,
+        Screen.Saved to Icons.Default.Favorite
     )
 
     NavigationBar {
@@ -160,15 +173,15 @@ fun BottomNavigation(navController: NavController) {
             NavigationBarItem(
                 icon = {
                     Icon(
-                        imageVector = screen.icon,
-                        contentDescription = screen.title
+                        imageVector = screen.second,
+                        contentDescription = screen.first.title
                     )
                 },
-                label = { Text(text = screen.title) },
-                selected = currentRoute == screen.route,
+                label = { Text(text = screen.first.title) },
+                selected = currentRoute == screen.first.toString(),
                 onClick = {
-                    if (currentRoute != screen.route) {
-                        navController.navigate(screen.route) {
+                    if (currentRoute != screen.first.toString()) {
+                        navController.navigate(screen.first) {
                             popUpTo(navController.graph.startDestinationId) {
                                 saveState = true
                             }
@@ -182,18 +195,26 @@ fun BottomNavigation(navController: NavController) {
     }
 }
 
-@Composable
-fun currentRoute(navController: NavHostController): String? {
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    return navBackStackEntry?.destination?.route
-}
+@Serializable
+sealed class Screen(val title: String) {
+    @Serializable
+    data object Home : Screen("Home") {
+        override fun toString(): String {
+            return this::class.simpleName.orEmpty()
+        }
+    }
 
-sealed class Screen(
-    val route: String,
-    val title: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector
-) {
-    data object Home : Screen("home", "Home", Icons.Default.Home)
-    data object Saved : Screen("saved", "Saved", Icons.Default.Favorite)
-    data object Detail : Screen("detail/{artworkId}", "Detail", Icons.Default.Home) // Icon not used
+    @Serializable
+    data object Saved : Screen("Saved") {
+        override fun toString(): String {
+            return this::class.simpleName.orEmpty()
+        }
+    }
+
+    @Serializable
+    data class Detail(val artworkId: Int, val artworkUrl: String) : Screen("Detail") {
+        companion object {
+            val route = "com.eldirohmanur.photogram.Screen.Detail/{title}/{artworkId}/{artworkUrl}"
+        }
+    }
 }

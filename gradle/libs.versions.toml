@@ -12,21 +12,24 @@ hiltAndroid = "2.51"
 hiltNavigationCompose = "1.2.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
-kotlin = "2.0.0"
+kotlin = "2.0.20"
+kotlinxCollectionsImmutable = "0.4.0"
 kotlinxCoroutinesAndroid = "1.9.0"
 kotlinxCoroutinesTest = "1.10.1"
-ksp = "2.0.0-1.0.23"
+ksp = "2.0.20-1.0.24"
 landscapistGlide = "2.4.7"
 landscapistPlaceholder = "2.4.7"
 lifecycleRuntimeKtx = "2.8.7"
 loggingInterceptor = "4.12.0"
 mockitoCore = "5.12.0"
 mockitoKotlin = "5.4.0"
-navigationCompose = "2.8.9"
+navigationCompose = "2.9.0"
 retrofit = "2.11.0"
 roomRuntime = "2.7.1"
 sonar = "6.0.1.5171"
 turbine = "0.12.1"
+uiTextGoogleFonts = "1.8.1"
+kotlinxSerializationJson = "1.7.3"
 
 [libraries]
 
@@ -54,7 +57,9 @@ hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltA
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltAndroid" }
 
 # --- JetBrains / Kotlin ---
+kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinxCollectionsImmutable" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 
 # --- Third-Party Libraries ---
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
@@ -74,6 +79,7 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+androidx-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -82,3 +88,4 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 sonar = { id = "org.sonarqube", version.ref = "sonar" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

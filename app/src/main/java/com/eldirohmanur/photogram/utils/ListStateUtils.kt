@@ -10,7 +10,7 @@ import androidx.compose.runtime.snapshotFlow
 
 @Composable
 fun LazyGridState.OnBottomReached(
-    loadMore: () -> Unit
+    loadMore: (() -> Unit)? = null
 ) {
     val shouldLoadMore = remember {
         derivedStateOf {
@@ -24,7 +24,7 @@ fun LazyGridState.OnBottomReached(
     LaunchedEffect(shouldLoadMore) {
         snapshotFlow { shouldLoadMore.value }
             .collect {
-                if (it) loadMore()
+                if (it) loadMore?.invoke()
             }
     }
 }
