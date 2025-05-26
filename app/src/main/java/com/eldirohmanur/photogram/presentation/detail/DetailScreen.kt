@@ -2,6 +2,7 @@
 
 package com.eldirohmanur.photogram.presentation.detail
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -30,7 +31,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.eldirohmanur.photogram.presentation.model.ArtworkUiModel
@@ -53,6 +56,7 @@ fun ArtworkDetailScreen(
 
     val state by viewModel.state.collectAsState()
     val artwork = state.artwork
+    val scrollState = rememberScrollState()
 
     Scaffold(
         floatingActionButton = {
@@ -67,16 +71,17 @@ fun ArtworkDetailScreen(
             }
         }
     ) { paddingValues ->
+        paddingValues
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = paddingValues.calculateBottomPadding())
-        ) {
+                .verticalScroll(scrollState),
+            ) {
             with(sharedTransitionScope) {
                 GlideImage(
                     imageModel = { artworkUrl }, // loading a network image using an URL.
                     imageOptions = ImageOptions(
-                        contentScale = ContentScale.Crop,
+                        contentScale = ContentScale.Fit,
                         alignment = Alignment.Center,
                     ),
                     component = rememberImageComponent {
@@ -86,42 +91,42 @@ fun ArtworkDetailScreen(
                         .fillMaxWidth()
                         .height(300.dp)
                         .sharedElement(
-                            sharedContentState = sharedTransitionScope.rememberSharedContentState(key = artworkUrl),
+                            sharedContentState = sharedTransitionScope.rememberSharedContentState(
+                                key = artworkUrl
+                            ),
                             animatedVisibilityScope = animatedContentScope
                         )
                 )
             }
 
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-            ) {
+            AnimatedContent(state, label = "content",) {
                 when {
-                    state.isLoading -> {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    it.isLoading -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(modifier = Modifier)
+                        }
                     }
 
-                    state.error != null -> {
-                        Text(
-                            text = state.error!!,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .padding(16.dp)
-                        )
+                    it.error != null -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = state.error!!,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier
+                                    .padding(16.dp)
+                            )
+                        }
                     }
 
-                    artwork != null -> {
+                    it.artwork != null -> {
                         ArtworkDetailContent(
-                            artwork = artwork,
-                            sharedTransitionScope = sharedTransitionScope,
-                            animatedContentScope = animatedContentScope
+                            modifier = Modifier,
+                            artwork = it.artwork
                         )
                     }
                 }
             }
         }
-
     }
 }
 
@@ -142,56 +147,51 @@ private fun SaveArtworkButton(
 
 @Composable
 fun ArtworkDetailContent(
-    artwork: ArtworkUiModel,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedContentScope,
+    modifier: Modifier,
+    artwork: ArtworkUiModel
 ) {
-    val scrollState = rememberScrollState()
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
 
-    with(sharedTransitionScope) {
-        Column(
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = artwork.title,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Artist: ${artwork.artist}",
+            style = MaterialTheme.typography.bodyLarge
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = "Date: ${artwork.date}",
+            style = MaterialTheme.typography.bodyMedium
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Description",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = AnnotatedString.Companion.fromHtml(artwork.description.ifEmpty { "No description available." }),
+            style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(16.dp)
-        ) {
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = artwork.title,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Artist: ${artwork.artist}",
-                style = MaterialTheme.typography.bodyLarge
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "Date: ${artwork.date}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Description",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = artwork.description.ifEmpty { "No description available." },
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
+        )
     }
 }
