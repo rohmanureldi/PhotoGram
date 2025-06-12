@@ -8,13 +8,17 @@ data object ArtworkMapperUi {
         return ArtworkUiModel(
             id = domain.id,
             title = domain.title,
-            artist = domain.artistName.orEmpty(),
-            date = domain.dateDisplay.orEmpty(),
+            artist = domain.artistName,
+            date = domain.dateDisplay,
             imageUrl = "https://www.artic.edu/iiif/2/${domain.imageId}/full/843,/0/default.jpg",
-            description = domain.description.orEmpty(),
+            description = domain.description,
             isSaved = domain.isSaved,
-            imageId = domain.imageId.orEmpty(),
-            thumbnailUrl = domain.thumbnailUrl
+            imageId = domain.imageId,
+            thumbnailUrl = domain.thumbnailUrl,
+            provenance = domain.provenance,
+            exhibitionHistory = domain.exhibitionHistory,
+            publicationHistory = domain.publicationHistory,
+            credit = domain.credit
         )
     }
 }

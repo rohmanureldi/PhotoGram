@@ -18,7 +18,11 @@ data object ArtworkMapperDomain {
             mediumDisplay = detailDomain.mediumDisplay,
             imageId = detailDomain.imageId,
             description = detailDomain.description,
-            isSaved = isSaved ?: false
+            isSaved = isSaved ?: false,
+            provenance = detailDomain.provenanceText,
+            exhibitionHistory = detailDomain.exhibitionHistory,
+            publicationHistory = detailDomain.publicationHistory,
+            credit = detailDomain.credit
         )
     }
 
@@ -31,6 +35,10 @@ data object ArtworkMapperDomain {
         imageId = uiModel.imageId,
         description = uiModel.description,
         isSaved = isSaved,
-        thumbnailUrl = uiModel.thumbnailUrl
+        thumbnailUrl = uiModel.thumbnailUrl,
+        provenance = uiModel.provenance,
+        exhibitionHistory = uiModel.exhibitionHistory,
+        publicationHistory = uiModel.publicationHistory,
+        credit = uiModel.credit
     )
 }

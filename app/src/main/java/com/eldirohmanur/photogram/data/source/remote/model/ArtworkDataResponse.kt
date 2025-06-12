@@ -11,5 +11,9 @@ data class ArtworkDataResponse(
     @SerializedName("medium_display") val mediumDisplay: String?,
     @SerializedName("image_id") val imageId: String?,
     @SerializedName("thumbnail") val thumbnail: ThumbnailResponse?,
-    @SerializedName("description") val description: String?
+    @SerializedName("description") val description: String?,
+    @SerializedName("provenance_text") val provenance: String?,
+    @SerializedName("publication_history") val publication: String?,
+    @SerializedName("exhibition_history") val exhibition: String?,
+    @SerializedName("credit_line") val credit: String? = ""
 )

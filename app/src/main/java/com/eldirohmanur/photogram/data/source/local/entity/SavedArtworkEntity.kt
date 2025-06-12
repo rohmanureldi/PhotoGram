@@ -13,6 +13,10 @@ data class SavedArtworkEntity(
     val mediumDisplay: String?,
     val imageId: String?,
     val description: String?,
+    val provenance: String?,
+    val exhibitionHistory: String?,
+    val publicationHistory: String?,
+    val credit: String?,
     val savedAt: Long = System.currentTimeMillis()
 )
 

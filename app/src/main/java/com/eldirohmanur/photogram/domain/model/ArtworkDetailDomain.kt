@@ -13,5 +13,6 @@ data class ArtworkDetailDomain(
     val exhibitionHistory: String = "",
     val publicationHistory: String = "",
     val placeOfOrigin: String = "",
+    val credit: String = "",
     val isSaved: Boolean = false
 )

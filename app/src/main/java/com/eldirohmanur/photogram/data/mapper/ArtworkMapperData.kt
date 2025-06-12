@@ -15,19 +15,27 @@ data object ArtworkMapperData {
         mediumDisplay = domain.mediumDisplay,
         imageId = domain.imageId,
         description = domain.description,
-        savedAt = System.currentTimeMillis()
+        savedAt = System.currentTimeMillis(),
+        provenance = domain.provenance,
+        publicationHistory = domain.publicationHistory,
+        exhibitionHistory = domain.exhibitionHistory,
+        credit = domain.credit
     )
 
     fun toArtwork(entity: SavedArtworkEntity): ArtworkDomain {
         return ArtworkDomain(
             id = entity.id,
             title = entity.title,
-            artistName = entity.artistName,
-            dateDisplay = entity.dateDisplay,
-            mediumDisplay = entity.mediumDisplay,
-            imageId = entity.imageId,
-            description = entity.description,
-            isSaved = true
+            artistName = entity.artistName.orEmpty(),
+            dateDisplay = entity.dateDisplay.orEmpty(),
+            mediumDisplay = entity.mediumDisplay.orEmpty(),
+            imageId = entity.imageId.orEmpty(),
+            description = entity.description.orEmpty(),
+            isSaved = true,
+            provenance = entity.provenance.orEmpty(),
+            publicationHistory = entity.publicationHistory.orEmpty(),
+            exhibitionHistory = entity.exhibitionHistory.orEmpty(),
+            credit = entity.credit.orEmpty()
         )
     }
 
@@ -35,13 +43,15 @@ data object ArtworkMapperData {
         return ArtworkDomain(
             id = response.id,
             title = response.title,
-            artistName = response.artistName,
-            dateDisplay = response.dateDisplay,
-            mediumDisplay = response.mediumDisplay,
-            imageId = response.imageId,
-            description = response.description,
+            artistName = response.artistName.orEmpty(),
+            dateDisplay = response.dateDisplay.orEmpty(),
+            mediumDisplay = response.mediumDisplay.orEmpty(),
+            imageId = response.imageId.orEmpty(),
+            description = response.description.orEmpty(),
             isSaved = isSaved ?: false,
-            thumbnailUrl = response.thumbnail?.lqip.orEmpty()
+            thumbnailUrl = response.thumbnail?.lqip.orEmpty(),
+            provenance = response.provenance.orEmpty(),
+            credit = response.credit.orEmpty()
         )
     }
 
@@ -59,6 +69,7 @@ data object ArtworkMapperData {
             exhibitionHistory = response.exhibitionHistory.orEmpty(),
             publicationHistory = response.publicationHistory.orEmpty(),
             placeOfOrigin = response.placeOfOrigin.orEmpty(),
+            credit = response.credit.orEmpty(),
             isSaved = false,
         )
     }

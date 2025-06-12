@@ -30,31 +30,47 @@ class DetailViewModel @Inject constructor(
     private val _state = MutableStateFlow(DetailScreenState())
     val state: StateFlow<DetailScreenState> = _state.asStateFlow()
 
+    private val _screenState = MutableStateFlow<DetailScreenContentState>(DetailScreenContentState.Loading)
+    val screenState: StateFlow<DetailScreenContentState> = _screenState.asStateFlow()
+
     fun loadArtwork(artworkId: Int) {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
+            _screenState.update { DetailScreenContentState.Loading }
 
             try {
-                val artwork =
+                val response =
                     getArtworkByIdUseCase(artworkId) ?: fetchArtworkDetailUseCase(artworkId)
-                _state.update {
-                    it.copy(
-                        artwork = artwork?.let { mapper.toArtworkUI(it) },
-                        isLoading = false
-                    )
+
+                response?.let { artwork ->
+                    _state.update {
+                        it.copy(
+                            artwork = mapper.toArtworkUI(artwork),
+                        )
+                    }
+                    _screenState.update {
+                        DetailScreenContentState.Success
+                    }
                 }
+
+
             } catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        error = "Failed to load artwork: ${e.message}"
-                    )
+                _screenState.update {
+                    DetailScreenContentState.Error("Failed to load artwork: ${e.message}")
                 }
             }
         }
     }
 
-    fun saveArtwork() {
+    fun toggleSave() {
+        val artwork = state.value.artwork ?: return
+        if (artwork.isSaved) {
+            removeFromSaved(artwork.id)
+        } else {
+            saveArtwork()
+        }
+    }
+
+    private fun saveArtwork() {
         val artwork = state.value.artwork ?: return
 
         viewModelScope.launch {
@@ -67,16 +83,14 @@ class DetailViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        error = "Failed to save artwork: ${e.message}"
-                    )
+                _screenState.update {
+                    DetailScreenContentState.Error("Failed to save artwork: ${e.message}")
                 }
             }
         }
     }
 
-    fun removeFromSaved(artworkId: Int) {
+    private fun removeFromSaved(artworkId: Int) {
         val artwork = state.value.artwork ?: return
 
         viewModelScope.launch {
@@ -88,10 +102,8 @@ class DetailViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        error = "Failed to remove artwork: ${e.message}"
-                    )
+                _screenState.update {
+                    DetailScreenContentState.Error("Failed to remove artwork: ${e.message}")
                 }
             }
         }

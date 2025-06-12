@@ -12,5 +12,9 @@ data class ArtworkUiModel(
     val thumbnailUrl: String = "",
     val description: String = "",
     val imageId: String = "",
+    val provenance: String = "",
+    val publicationHistory: String = "",
+    val exhibitionHistory: String = "",
+    val credit: String = "",
     val isSaved: Boolean = false
 )

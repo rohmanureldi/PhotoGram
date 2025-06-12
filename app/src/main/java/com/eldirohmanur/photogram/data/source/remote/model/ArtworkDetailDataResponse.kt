@@ -15,5 +15,6 @@ data class ArtworkDetailDataResponse(
     @SerializedName("provenance_text") val provenanceText: String? = "",
     @SerializedName("exhibition_history") val exhibitionHistory: String? = "",
     @SerializedName("publication_history") val publicationHistory: String? = "",
-    @SerializedName("place_of_origin") val placeOfOrigin: String? = ""
+    @SerializedName("place_of_origin") val placeOfOrigin: String? = "",
+    @SerializedName("credit_line") val credit: String? = "",
 )
